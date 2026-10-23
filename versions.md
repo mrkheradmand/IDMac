@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## 1.0.3 (build 4) — 2026-10-23
 
 ### Added
+- Added `AppDelegate` in `IDMacApp.swift` with `NSWindow.allowsAutomaticWindowTabbing = false` and menu item scrubber to disallow window tabbing.
+- Created `developer_docs/RELEASE_PROCESS_INSTRUCTIONS.md` containing full step-by-step release operations.
 - Created complete automated GitHub release infrastructure:
   - `scripts/build_dmg.sh`: Native macOS APFS/UDZO disk image builder with `/Applications` symlink and SHA256 checksum verification.
   - `scripts/release_metadata.py`: Tri-source validator (`Info.plist`, `versions.md`, Git tag) and smart release note aggregator.
@@ -23,11 +25,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Established `versions.md` as the persistent versioning log for tracking all additions, modifications, and removals across releases.
 
 ### Modified
+- Disabled window tabbing mode (`window.tabbingMode = .disallowed`) across all application windows.
 - Updated `.gitignore` to permanently ignore `.DS_Store`, `**/.DS_Store`, and `dist/`.
 - Rebalanced all 8 column widths in `DownloadTableView.swift` (File Name, Size, Status, Progress, Speed, Time Left, Resume, Date Added) to an aggregate ideal width of ~810 pt so all columns remain visible simultaneously.
 - Optically scaled the active squircle app icon from 824px to 876px (+6.3%) to eliminate perceived shrinkage in the macOS Dock alongside high-luminance system icons.
 
 ### Removed
+- Removed "Show Tab Bar" and "Show All Tabs" menu items from the View menu.
 - Untracked all `.DS_Store` files from Git tracking, cache, and monitoring.
 - Removed the unwanted horizontal scrollbar thumb and corner junction artifact that previously appeared in the bottom-right corner of the table on launch.
 
