@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.0.8 (build 9) — 2026-10-23
+
+### Added
+- None.
+
+### Modified
+- **Menu Bar Icon Refinement (`MenuBarManager.swift`)**:
+  - Increased system status bar template icon size by 10% (`pointSize: 15.5` with proportional 1.10x scale) for improved visual prominence and legibility in the macOS menu bar.
+- Bumped application bundle version to 1.0.8 (build 9).
+
+### Removed
+- None.
+
+---
+
 ## 1.0.7 (build 8) — 2026-10-23
 
 ### Added

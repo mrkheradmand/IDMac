@@ -19,8 +19,12 @@ public final class MenuBarManager: NSObject, NSMenuDelegate, NSWindowDelegate {
                 let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
                 if let button = item.button {
                     if let image = NSImage(systemSymbolName: "arrow.down.circle", accessibilityDescription: "IDMac") {
-                        image.isTemplate = true
-                        button.image = image
+                        let config = NSImage.SymbolConfiguration(pointSize: 15.5, weight: .regular)
+                        let scaledImage = image.withSymbolConfiguration(config) ?? image
+                        scaledImage.isTemplate = true
+                        let originalSize = scaledImage.size
+                        scaledImage.size = NSSize(width: originalSize.width * 1.10, height: originalSize.height * 1.10)
+                        button.image = scaledImage
                         button.imagePosition = .imageOnly
                     }
                     button.target = self

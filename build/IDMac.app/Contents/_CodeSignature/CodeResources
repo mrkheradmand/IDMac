@@ -38,11 +38,11 @@
 		</data>
 		<key>Resources/extensions/firefox/manifest.json</key>
 		<data>
-		tVXAivoBpVFOj/Woh7JSLkTfSxo=
+		6/gxIIe+bdmiDWmGec+pClzGZCk=
 		</data>
 		<key>Resources/extensions/firefox/popup.html</key>
 		<data>
-		3JPX8UBAs+X5AwxS1Md3aipAAJo=
+		4kNXAEQl/88nBPbjpgNAIZxqUf4=
 		</data>
 		<key>Resources/extensions/firefox/popup.js</key>
 		<data>
@@ -50,7 +50,7 @@
 		</data>
 		<key>Resources/extensions/idmac-firefox.xpi</key>
 		<data>
-		2lJVMuNaZGMSUzg177zKTrY5GeY=
+		lEslY86xKiGr4AyxuTdDFvOBuXQ=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -115,14 +115,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			w0BHOFCXXWDf9BUAKRjphEFBQ9lKM9Thv5A8z32Ljr0=
+			8sqZS5vtExaT1bEdRXcqYaZUrByAl7WtEo2l3I4HK0g=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/popup.html</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			lxKo0bMgxuAVfHQ+kofy+N7p7qBji+FYeJWOuV9f044=
+			Ezf7BbXlTNeDFhJCAAOQWKksfL1DTOGPqXjCv03mmSk=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/popup.js</key>
@@ -136,7 +136,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			t8JwisvilbW1eRQoytzuN4QXQzz5SENoA7aQwisKRnA=
+			Scsnq3xzpawPdXZ5J8/ZqjcuiwhjFWA0ZRMMqMqWltk=
 			</data>
 		</dict>
 	</dict>
