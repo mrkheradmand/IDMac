@@ -29,6 +29,17 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.idmac.url-scheme</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>idmac</string>
+            </array>
+        </dict>
+    </array>
     <key>NSDownloadsFolderUsageDescription</key>
     <string>IDMac needs access to the Downloads folder to save your downloaded files.</string>
     <key>NSHumanReadableCopyright</key>

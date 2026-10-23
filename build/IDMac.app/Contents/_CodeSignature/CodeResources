@@ -12,6 +12,46 @@
 		<data>
 		fKKhDKIFTb/Yn84m4hYNcAQxTRE=
 		</data>
+		<key>Resources/extensions/firefox/background.js</key>
+		<data>
+		TrMK3rhtgbRuqjaAce8CtR3TZKA=
+		</data>
+		<key>Resources/extensions/firefox/content.js</key>
+		<data>
+		9BQH4sWbDnRlxX7gUWA6PNGsCzc=
+		</data>
+		<key>Resources/extensions/firefox/icons/icon-128.png</key>
+		<data>
+		KFqw51/B3LpHyK2HVB0QSDW8yOk=
+		</data>
+		<key>Resources/extensions/firefox/icons/icon-16.png</key>
+		<data>
+		iwiiUgdODHizt0Q3poyWgay/VyA=
+		</data>
+		<key>Resources/extensions/firefox/icons/icon-32.png</key>
+		<data>
+		zjOU/3xzUa/6AOjnJI8ILECh3SU=
+		</data>
+		<key>Resources/extensions/firefox/icons/icon-48.png</key>
+		<data>
+		I0In7/1w5Ti3nUkmeJUKRmYwNlk=
+		</data>
+		<key>Resources/extensions/firefox/manifest.json</key>
+		<data>
+		+xMKG3hV7enFg5rTOQKvgwR88iA=
+		</data>
+		<key>Resources/extensions/firefox/popup.html</key>
+		<data>
+		1JVtkt2MOdv8jspCuPX8Tj7Y2jE=
+		</data>
+		<key>Resources/extensions/firefox/popup.js</key>
+		<data>
+		lpocjQ0u2uOEWBY7khqgK2SBv+E=
+		</data>
+		<key>Resources/extensions/idmac-firefox.xpi</key>
+		<data>
+		Zdweq5sOIAgtGDtG0eIkFgHxEqY=
+		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
@@ -27,6 +67,76 @@
 			<key>hash2</key>
 			<data>
 			t7tE8webTHlDTiSO1b2SP6H1Z9QlG03/O6Vmc4Fp+LA=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/background.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			N+IMlAKTjGnkPrGXA1uuXncWpby4JirtelLOkYeQB4I=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/content.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			MWH9THiPWT5T5xh7Mfr1xV6m/4As7iiAgyEGGFy7LLo=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/icons/icon-128.png</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			oLbyrMcd0pk2Jz8j+Y0+RCSFzHaUg1EfAe0Icdtk5+Y=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/icons/icon-16.png</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			DJoZL2zUsbknb7xceLHmb9K9Kr3HEuGZoSIao6r7jGg=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/icons/icon-32.png</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			PqxHdBq7kkCs6llE5++0/nQqM7jd07Hldt55GYQydFs=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/icons/icon-48.png</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			CRTslOKfHuFYyqZKMk0nClVjT/HsbX5gX/35M9OwQO0=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/manifest.json</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			KxKQwoySpix4MIBqALKOrMBOtEpKnckMjzl/OjY/6Ww=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/popup.html</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			JFMNqRVTcM57RAXMa1RNbeXYsmIaFA4drBdDajI0Vz4=
+			</data>
+		</dict>
+		<key>Resources/extensions/firefox/popup.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			TFrhHcpo1LvMQWLs/czmuQPQNo8KHB0wk/33ev3Ailk=
+			</data>
+		</dict>
+		<key>Resources/extensions/idmac-firefox.xpi</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			S4eyE/2ZG/rVd/ichS/DuBy4K7Ko/dUH7vadNxsuTxg=
 			</data>
 		</dict>
 	</dict>

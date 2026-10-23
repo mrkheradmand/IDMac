@@ -86,6 +86,36 @@ public final class DownloadCoordinator {
 
         item.status = .downloading
         item.errorMessage = nil
+
+        // Ensure segments are properly initialized with accurate byte ranges before starting workers
+        if item.segments.isEmpty {
+            let count = (item.supportsResume && item.fileSize > 0) ? max(1, item.connectionCount) : 1
+            let total = item.fileSize
+            if count > 1 && total > 0 {
+                let chunkSize = total / Int64(count)
+                for i in 0..<count {
+                    let start = Int64(i) * chunkSize
+                    let end = (i == count - 1) ? (total - 1) : (start + chunkSize - 1)
+                    let seg = DownloadSegment(
+                        segmentIndex: i,
+                        startByte: start,
+                        endByte: end,
+                        currentByte: start,
+                        isCompleted: false
+                    )
+                    item.segments.append(seg)
+                }
+            } else {
+                let seg = DownloadSegment(
+                    segmentIndex: 0,
+                    startByte: 0,
+                    endByte: max(0, total - 1),
+                    currentByte: 0,
+                    isCompleted: false
+                )
+                item.segments.append(seg)
+            }
+        }
         try? modelContext.save()
 
         speedSamplers[itemId] = (bytes: item.downloadedBytes, timestamp: Date())
@@ -199,10 +229,15 @@ public final class DownloadCoordinator {
             seg.currentByte = update.currentByte
             seg.isCompleted = update.isCompleted
         } else {
+            let total = item.fileSize
+            let count = max(1, item.connectionCount)
+            let chunkSize = total > 0 ? (total / Int64(count)) : 0
+            let start = Int64(update.segmentIndex) * chunkSize
+            let end = (update.segmentIndex == count - 1) ? max(0, total - 1) : (start + chunkSize - 1)
             let newSeg = DownloadSegment(
                 segmentIndex: update.segmentIndex,
-                startByte: update.currentByte - update.bytesRead,
-                endByte: update.currentByte,
+                startByte: start,
+                endByte: max(start, end),
                 currentByte: update.currentByte,
                 isCompleted: update.isCompleted
             )
@@ -233,7 +268,7 @@ public final class DownloadCoordinator {
         }
         for seg in item.segments {
             seg.isCompleted = true
-            seg.currentByte = seg.endByte + 1
+            seg.currentByte = seg.endByte
         }
         try? context.save()
         activeTasks.removeValue(forKey: itemId)

@@ -1,0 +1,45 @@
+{
+  "manifest_version": 2,
+  "name": "IDMac Integration",
+  "version": "1.0.6",
+  "description": "Seamlessly intercepts and accelerates Firefox downloads with IDMac native multi-stream accelerator.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "downloads",
+    "contextMenus",
+    "storage",
+    "notifications",
+    "<all_urls>",
+    "http://127.0.0.1:23485/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    },
+    "default_title": "IDMac Integration",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "idmac-integration@idmac.app",
+      "strict_min_version": "109.0"
+    }
+  }
+}

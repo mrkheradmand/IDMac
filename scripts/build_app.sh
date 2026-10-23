@@ -172,6 +172,17 @@ cat << EOF > "${CONTENTS_DIR}/Info.plist"
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.idmac.url-scheme</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>idmac</string>
+            </array>
+        </dict>
+    </array>
     <key>NSDownloadsFolderUsageDescription</key>
     <string>IDMac needs access to the Downloads folder to save your downloaded files.</string>
     <key>NSHumanReadableCopyright</key>
@@ -200,6 +211,15 @@ fi
 # Copy standalone .icns file if present
 if [[ -f "${ROOT_DIR}/Resources/AppIcon.icns" ]]; then
     cp "${ROOT_DIR}/Resources/AppIcon.icns" "${RESOURCES_DIR}/AppIcon.icns"
+fi
+
+# Package and copy browser extensions into application bundle
+if [[ -d "${ROOT_DIR}/extensions" ]]; then
+    mkdir -p "${RESOURCES_DIR}/extensions"
+    if [[ -d "${ROOT_DIR}/extensions/firefox" ]]; then
+        (cd "${ROOT_DIR}/extensions/firefox" && zip -rq "${RESOURCES_DIR}/extensions/idmac-firefox.xpi" . 2>/dev/null || true)
+        cp -R "${ROOT_DIR}/extensions/firefox" "${RESOURCES_DIR}/extensions/" 2>/dev/null || true
+    fi
 fi
 
 # Ad-hoc code signing for local macOS execution

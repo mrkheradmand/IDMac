@@ -21,16 +21,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Launch at System Startup (`LaunchAtLoginManager.swift`)**:
   - Modern macOS 13+ native `ServiceManagement` (`SMAppService.mainApp`) integration to register/unregister IDMac for launch at login.
   - No legacy helper bundles or elevated privileges required.
-- **Menu Bar & Startup Settings Section (`SettingsView.swift`)**:
-  - Added dedicated configuration controls in the "General" settings tab:
-    - "Launch IDMac at system startup" toggle (`SMAppService.mainApp`).
-    - "Show status icon in menu bar" toggle (`showMenuBarIcon`).
-    - "Keep IDMac running in menu bar when window is closed" toggle (`keepRunningInMenuBar`).
-    - "Hide Dock icon when window is closed" toggle (`hideDockIconWhenClosed`).
-- **Download Coordinator Global Controls (`DownloadCoordinator.swift`)**:
-  - Added `resumeAllDownloads()`, `pauseAllDownloads()`, and `getActiveDownloadStats()` helpers for menu bar and global shortcut triggers.
+- **Mozilla Firefox Browser Extension (`extensions/firefox/`)**:
+  - Created complete WebExtensions companion extension for Mozilla Firefox.
+  - Automatic download interception via `browser.downloads.onCreated`, pausing native single-stream browser downloads and routing them to IDMac for multi-part acceleration.
+  - Graceful fallback: If IDMac is offline or closed, Firefox seamlessly downloads files natively without user interruption.
+  - Right-click context menus: "Download with IDMac" and "Download Media with IDMac".
+  - macOS HIG popup with live connection status badge (Connected / Offline), capture toggle switch, and 1-click app launcher.
+  - Packaged both `.xpi` and unpacked format inside the application bundle (`Contents/Resources/extensions/`).
+- **Browsers Settings Tab & 1-Click Extension Installer (`SettingsView.swift`)**:
+  - Added dedicated **Browsers** tab in Settings with:
+    - Mozilla Firefox companion installer: Copies extension package to `~/Library/Application Support/IDMac/extensions/`, launches Firefox to `about:debugging#/runtime/this-firefox`, reveals the extension file in Finder, and presents an interactive 3-step installation guide.
+    - Google Chrome & Chromium roadmap card with in-app architectural blueprint viewer.
+    - Live Local Bridge connection status monitor.
+- **Local Bridge Server (`LocalServer.swift`)**:
+  - Lightweight localhost loopback HTTP server (`http://127.0.0.1:23485`) built on Apple's native `Network.framework` (`NWListener`).
+  - Endpoints: `GET /health` (heartbeat & version check) and `POST /add` (queued download task ingestion with CORS support).
+- **Custom URL Scheme (`idmac://`)**:
+  - Registered `idmac://add?url=...` in `Info.plist` and `IDMacApp.swift` via `.onOpenURL` for instant browser and CLI link invocation.
+- **Chrome Extension Architecture Plan (`developer_docs/CHROME_EXTENSION_PLAN.md`)**:
+  - Formulated full Manifest V3 architectural plan with sequence diagrams, service worker lifecycle, and declarativeNetRequest integration.
 
 ### Modified
+- **Segment Size & Progress Calculation Fix**:
+  - Resolved the bug where connection segments displayed as "66 KB / 66 KB" regardless of the true file size (e.g. 8 × 66 KB on a 12.7 MB file).
+  - Pre-allocated segment models in SwiftData with exact byte ranges (`startByte` to `endByte`) prior to launching worker task groups instead of dynamically instantiating segments from the first 64 KB memory chunk.
+  - Added self-healing display logic in `SegmentInspectorView.swift` to automatically repair and accurately format any legacy completed downloads stored in SwiftData.
 - Connected `DownloadCoordinator` model context lifecycle to `MainSplitView.onAppear` to guarantee swift data persistence on startup.
 - Connected application main menu "Downloads -> Resume All" (Cmd+Shift+R) and "Downloads -> Stop All" (Cmd+Shift+S) to coordinator methods.
 - Bumped application bundle version to 1.0.6 (build 7).

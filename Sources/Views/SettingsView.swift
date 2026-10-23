@@ -21,19 +21,25 @@ public struct SettingsView: View {
                 }
                 .tag(1)
 
+            BrowsersSettingsTab()
+                .tabItem {
+                    Label("Browsers", systemImage: "globe")
+                }
+                .tag(2)
+
             UpdatesSettingsTab()
                 .tabItem {
                     Label("Updates", systemImage: "arrow.triangle.2.circlepath")
                 }
-                .tag(2)
+                .tag(3)
 
             AdvancedSettingsTab()
                 .tabItem {
                     Label("Advanced", systemImage: "slider.horizontal.3")
                 }
-                .tag(3)
+                .tag(4)
         }
-        .frame(width: 560, height: 530)
+        .frame(width: 580, height: 540)
     }
 }
 
@@ -303,7 +309,343 @@ private struct AccelerationSettingsTab: View {
     }
 }
 
-// MARK: - 3. Updates Settings Tab
+// MARK: - 3. Browsers Settings Tab
+private struct BrowsersSettingsTab: View {
+    @ObservedObject private var browserManager = BrowserIntegrationManager.shared
+    @ObservedObject private var localServer = LocalServer.shared
+    @State private var showingChromePlan = false
+
+    var body: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "globe.americas.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.orange)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Mozilla Firefox Companion")
+                                .font(.system(size: 14, weight: .bold))
+
+                            if browserManager.isFirefoxInstalled {
+                                Label("Firefox installed on this Mac", systemImage: "checkmark.circle.fill")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.green)
+                            } else {
+                                Text("Ready to install extension package")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Spacer()
+
+                        Button("Install Extension…") {
+                            browserManager.installFirefoxExtension()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.regular)
+                    }
+
+                    Text("Automatically intercepts downloadable files in Firefox and routes them through IDMac's multi-part engine.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if let msg = browserManager.installationStatusMessage {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "info.circle.fill")
+                                    .foregroundColor(.blue)
+                                Text(msg)
+                                    .font(.system(size: 11))
+                            }
+
+                            HStack {
+                                Button("Open Extensions Folder") {
+                                    NSWorkspace.shared.open(browserManager.appExtensionsDir)
+                                }
+                                .controlSize(.small)
+
+                                Button("Installation Guide") {
+                                    browserManager.showInstallGuide = true
+                                }
+                                .controlSize(.small)
+                            }
+                        }
+                        .padding(10)
+                        .background(Color.blue.opacity(0.08))
+                        .cornerRadius(6)
+                    }
+                }
+                .padding(6)
+            } header: {
+                Text("Mozilla Firefox")
+            }
+
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "network")
+                            .font(.system(size: 30))
+                            .foregroundColor(.blue)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                Text("Google Chrome & Chromium")
+                                    .font(.system(size: 14, weight: .bold))
+
+                                Text("PLANNED")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.15))
+                                    .foregroundColor(.blue)
+                                    .cornerRadius(4)
+                            }
+
+                            Text("Manifest V3 architecture planned for Chrome, Brave, Edge, and Arc.")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        Button("View Architecture Plan") {
+                            showingChromePlan = true
+                        }
+                        .controlSize(.small)
+                    }
+
+                    Text("The Chrome extension will use the same lightweight 127.0.0.1 bridge with declarativeNetRequest and background service workers.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(6)
+            } header: {
+                Text("Google Chrome & Chromium")
+            }
+
+            Section {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Local Bridge Server")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("Accepts incoming download tasks from authorized browser extensions.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if localServer.isRunning {
+                        HStack(spacing: 6) {
+                            Circle().fill(Color.green).frame(width: 8, height: 8)
+                            Text("Active on 127.0.0.1:\(localServer.port)")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Button("Start Listener") {
+                            localServer.start()
+                        }
+                        .controlSize(.small)
+                    }
+                }
+            } header: {
+                Text("Connection Bridge")
+            }
+        }
+        .formStyle(.grouped)
+        .padding(12)
+        .sheet(isPresented: $browserManager.showInstallGuide) {
+            FirefoxInstallGuideSheet()
+        }
+        .sheet(isPresented: $showingChromePlan) {
+            ChromePlanSheet()
+        }
+    }
+}
+
+private struct FirefoxInstallGuideSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "globe.americas.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.orange)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Installing the Firefox Extension")
+                        .font(.headline)
+                    Text("Quick 3-step setup to capture downloads in Firefox")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button("Done") {
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 12) {
+                    Text("1")
+                        .font(.system(size: 12, weight: .bold))
+                        .frame(width: 22, height: 22)
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(11)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Open Firefox Debugging")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("In Firefox's URL address bar, navigate to:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("about:debugging#/runtime/this-firefox")
+                            .font(.system(size: 11, design: .monospaced))
+                            .padding(.vertical, 2)
+                    }
+                }
+
+                HStack(alignment: .top, spacing: 12) {
+                    Text("2")
+                        .font(.system(size: 12, weight: .bold))
+                        .frame(width: 22, height: 22)
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(11)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Click 'Load Temporary Add-on…'")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Click the button on Firefox's debugging page to select an extension file.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                HStack(alignment: .top, spacing: 12) {
+                    Text("3")
+                        .font(.system(size: 12, weight: .bold))
+                        .frame(width: 22, height: 22)
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(11)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Select idmac-firefox.xpi")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Select the revealed 'idmac-firefox.xpi' or the 'manifest.json' file inside the folder.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Divider()
+
+            HStack {
+                Button("Reveal in Finder") {
+                    NSWorkspace.shared.open(BrowserIntegrationManager.shared.appExtensionsDir)
+                }
+
+                Spacer()
+
+                Button("Open Firefox") {
+                    if let firefox = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "org.mozilla.firefox") {
+                        NSWorkspace.shared.openApplication(at: firefox, configuration: NSWorkspace.OpenConfiguration())
+                    }
+                }
+            }
+        }
+        .padding(20)
+        .frame(width: 460)
+    }
+}
+
+private struct ChromePlanSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "network")
+                    .font(.system(size: 28))
+                    .foregroundColor(.blue)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Chrome Extension Architecture Plan")
+                        .font(.headline)
+                    Text("Manifest V3 Roadmap for Chromium Browsers")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button("Done") {
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+
+            Divider()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Architecture Overview")
+                        .font(.system(size: 13, weight: .bold))
+
+                    Text("The upcoming Chrome extension is designed for Google Chrome, Brave, Arc, and Microsoft Edge using Google's strict Manifest V3 standard:")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("Event-Driven MV3 Service Worker (service_worker.js)", systemImage: "bolt.fill")
+                        Label("chrome.downloads.onCreated automatic download interception", systemImage: "arrow.down.circle")
+                        Label("Direct loopback bridge via http://127.0.0.1:23485/add", systemImage: "link")
+                        Label("Zero telemetry - 100% private localhost communication", systemImage: "lock.shield")
+                    }
+                    .font(.system(size: 11))
+
+                    Text("Detailed Technical Blueprint")
+                        .font(.system(size: 13, weight: .bold))
+                        .padding(.top, 4)
+
+                    Text("A complete system architecture specification has been drafted in developer_docs/CHROME_EXTENSION_PLAN.md with sequence diagrams and manifest specs.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxHeight: 220)
+
+            Divider()
+
+            HStack {
+                Button("Open Plan Document") {
+                    let planPath = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("developer_docs/CHROME_EXTENSION_PLAN.md")
+                    NSWorkspace.shared.open(planPath)
+                }
+
+                Spacer()
+
+                Button("Close") {
+                    dismiss()
+                }
+            }
+        }
+        .padding(20)
+        .frame(width: 480)
+    }
+}
+
+// MARK: - 4. Updates Settings Tab
 private struct UpdatesSettingsTab: View {
     @ObservedObject private var updateManager = UpdateManager.shared
     @AppStorage("automaticallyCheckForUpdates") private var automaticallyCheckForUpdates: Bool = true

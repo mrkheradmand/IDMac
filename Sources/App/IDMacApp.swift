@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         MenuBarManager.shared.setupStatusBarItem()
+        LocalServer.shared.start()
 
         // Listen for windows becoming key/main and permanently disallow tabbing
         NotificationCenter.default.addObserver(
@@ -123,6 +124,9 @@ struct IDMacApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    handleIncomingURL(url)
+                }
         }
         .defaultSize(width: 1060, height: 640)
         .modelContainer(sharedModelContainer)
@@ -164,6 +168,26 @@ struct IDMacApp: App {
 
         Settings {
             SettingsView()
+        }
+    }
+
+    private func handleIncomingURL(_ url: URL) {
+        guard url.scheme == "idmac" else { return }
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+            if let targetURL = components.queryItems?.first(where: { $0.name == "url" })?.value {
+                let context = sharedModelContainer.mainContext
+                let defaultFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
+                Task {
+                    await DownloadCoordinator.shared.addDownload(
+                        urlString: targetURL,
+                        destinationFolder: defaultFolder,
+                        connectionCount: UserDefaults.standard.integer(forKey: "defaultConnections") > 0 ? UserDefaults.standard.integer(forKey: "defaultConnections") : 8,
+                        modelContext: context,
+                        startImmediately: true
+                    )
+                    MenuBarManager.shared.showMainWindow()
+                }
+            }
         }
     }
 }

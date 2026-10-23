@@ -34,7 +34,10 @@ public final class DownloadSegment {
     }
 
     public var downloadedInSegment: Int64 {
-        max(0, currentByte - startByte)
+        if isCompleted {
+            return totalBytesInSegment
+        }
+        return min(totalBytesInSegment, max(0, currentByte - startByte))
     }
 
     public var progress: Double {

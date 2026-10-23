@@ -53,9 +53,9 @@ public struct SegmentInspectorView: View {
                                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                                     .frame(width: 75, alignment: .leading)
 
-                                ClassicProgressBar(progress: seg.progress, height: 12, showPercentage: true)
+                                ClassicProgressBar(progress: resolvedProgress(for: seg), height: 12, showPercentage: true)
 
-                                Text("\(FormatUtils.formatBytes(seg.downloadedInSegment)) / \(FormatUtils.formatBytes(seg.totalBytesInSegment))")
+                                Text("\(FormatUtils.formatBytes(resolvedDownloadedBytes(for: seg))) / \(FormatUtils.formatBytes(resolvedTotalBytes(for: seg)))")
                                     .font(.system(size: 10, design: .monospaced))
                                     .foregroundColor(.secondary)
                                     .frame(width: 140, alignment: .trailing)
@@ -109,5 +109,28 @@ public struct SegmentInspectorView: View {
                 .foregroundColor(Color(nsColor: .separatorColor)),
             alignment: .top
         )
+    }
+
+    private func resolvedTotalBytes(for seg: DownloadSegment) -> Int64 {
+        if seg.totalBytesInSegment > 131072 || item.fileSize <= 0 {
+            return seg.totalBytesInSegment
+        }
+        let count = max(1, item.segments.count)
+        return item.fileSize / Int64(count)
+    }
+
+    private func resolvedDownloadedBytes(for seg: DownloadSegment) -> Int64 {
+        let total = resolvedTotalBytes(for: seg)
+        if seg.isCompleted || item.status == .completed {
+            return total
+        }
+        return min(total, seg.downloadedInSegment)
+    }
+
+    private func resolvedProgress(for seg: DownloadSegment) -> Double {
+        if seg.isCompleted || item.status == .completed { return 1.0 }
+        let total = resolvedTotalBytes(for: seg)
+        guard total > 0 else { return 0.0 }
+        return min(1.0, max(0.0, Double(resolvedDownloadedBytes(for: seg)) / Double(total)))
     }
 }
