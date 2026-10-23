@@ -178,6 +178,7 @@ struct IDMacApp: App {
                 let context = sharedModelContainer.mainContext
                 let defaultFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
                 Task {
+                    MenuBarManager.shared.showMainWindow()
                     await DownloadCoordinator.shared.addDownload(
                         urlString: targetURL,
                         destinationFolder: defaultFolder,
@@ -185,7 +186,6 @@ struct IDMacApp: App {
                         modelContext: context,
                         startImmediately: true
                     )
-                    MenuBarManager.shared.showMainWindow()
                 }
             }
         }

@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.0.11 (build 12) — 2026-10-23
+
+### Added
+- **Duplicate Download Detection & Conflict Dialog (`DownloadCoordinator.swift`)**:
+  - Automatically intercepts duplicate downloads when adding files that already exist in the IDMac download list (by URL, filename, or destination path) or in the destination folder on disk.
+  - Activates and presents a native macOS dialog detailing current file status (Completed, Currently Downloading with progress percentage, Paused, or existing on disk).
+  - Offers intuitive resolution actions:
+    - **Auto-Rename (Keep Both)** (Default): Automatically appends an incremental counter (e.g., `file (1).ext`) to preserve both the existing file and the new download without conflict.
+    - **Overwrite**: Cleanly resets/replaces any existing entry, deletes partial/existing file, and starts download fresh.
+    - **Cancel**: Aborts duplicate download request without modifying existing files or tasks.
+    - **Reveal in Finder**: One-click action to highlight and reveal the existing completed file in macOS Finder.
+- **Browser File Name Forwarding (`LocalServer.swift`)**:
+  - Forwarded custom filename from Firefox Companion `POST /add` to ensure accurate duplicate matching before probing headers.
+
+### Modified
+- **Add Download Sheet Flow (`AddDownloadSheet.swift`)**:
+  - Preserves user input if a duplicate prompt is cancelled, allowing destination or URL modification.
+- Bumped application bundle version to 1.0.11 (build 12).
+
+### Removed
+- Eliminated silent file overwriting and duplicate race conditions when downloading the same file multiple times.
+
+---
+
 ## 1.0.10 (build 11) — 2026-10-23
 
 ### Added

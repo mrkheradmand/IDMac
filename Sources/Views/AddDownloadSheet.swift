@@ -165,28 +165,32 @@ public struct AddDownloadSheet: View {
 
                 Button("Download Later") {
                     Task {
-                        await coordinator.addDownload(
+                        let added = await coordinator.addDownload(
                             urlString: urlString,
                             destinationFolder: selectedFolderURL,
                             connectionCount: connectionCount,
                             modelContext: modelContext,
                             startImmediately: false
                         )
-                        dismiss()
+                        if added {
+                            dismiss()
+                        }
                     }
                 }
                 .disabled(urlString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
                 Button("Start Download") {
                     Task {
-                        await coordinator.addDownload(
+                        let added = await coordinator.addDownload(
                             urlString: urlString,
                             destinationFolder: selectedFolderURL,
                             connectionCount: connectionCount,
                             modelContext: modelContext,
                             startImmediately: true
                         )
-                        dismiss()
+                        if added {
+                            dismiss()
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)

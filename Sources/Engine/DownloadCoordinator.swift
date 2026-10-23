@@ -1,6 +1,13 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import AppKit
+
+public enum DuplicateResolution: Sendable {
+    case autoRename(String)
+    case overwrite
+    case cancel
+}
 
 @MainActor
 @Observable
@@ -18,19 +25,21 @@ public final class DownloadCoordinator {
 
     public init() {}
 
+    @discardableResult
     public func addDownload(
         urlString: String,
+        customFilename: String? = nil,
         destinationFolder: URL,
         connectionCount: Int = 8,
         modelContext: ModelContext,
         startImmediately: Bool = true
-    ) async {
+    ) async -> Bool {
         self.modelContext = modelContext
         guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-            return
+            return false
         }
 
-        var detectedFilename = url.lastPathComponent
+        var detectedFilename = customFilename ?? url.lastPathComponent
         if detectedFilename.isEmpty {
             detectedFilename = "download_\(Int(Date().timeIntervalSince1970))"
         }
@@ -39,14 +48,46 @@ public final class DownloadCoordinator {
 
         do {
             let probe = try await DownloadEngine.probe(url: url)
-            detectedFilename = probe.filename
+            if customFilename == nil || customFilename!.isEmpty {
+                detectedFilename = probe.filename
+            }
             totalSize = probe.totalSize
             supportsResume = probe.supportsResume
         } catch {
             print("Probe error: \(error.localizedDescription), proceeding with defaults")
         }
 
-        let destinationURL = destinationFolder.appendingPathComponent(detectedFilename)
+        var destinationURL = destinationFolder.appendingPathComponent(detectedFilename)
+
+        // Duplicate Detection: Check list and filesystem
+        let duplicateItem = findDuplicateItem(urlString: urlString, destinationPath: destinationURL.path, in: modelContext)
+        let fileExistsOnDisk = FileManager.default.fileExists(atPath: destinationURL.path)
+
+        if duplicateItem != nil || fileExistsOnDisk {
+            let resolution = await promptDuplicateAction(
+                filename: detectedFilename,
+                destinationFolder: destinationFolder,
+                existingItem: duplicateItem,
+                fileExistsOnDisk: fileExistsOnDisk
+            )
+
+            switch resolution {
+            case .cancel:
+                return false
+
+            case .autoRename(let uniqueName):
+                detectedFilename = uniqueName
+                destinationURL = destinationFolder.appendingPathComponent(detectedFilename)
+
+            case .overwrite:
+                if let existing = duplicateItem {
+                    delete(item: existing, deleteFile: true, modelContext: modelContext)
+                } else if fileExistsOnDisk {
+                    try? FileManager.default.removeItem(at: destinationURL)
+                }
+            }
+        }
+
         let category = DownloadCategory.inferCategory(fromFilename: detectedFilename)
 
         let item = DownloadItem(
@@ -67,6 +108,157 @@ public final class DownloadCoordinator {
 
         if startImmediately {
             start(item: item, modelContext: modelContext)
+        }
+
+        return true
+    }
+
+    private func findDuplicateItem(urlString: String, destinationPath: String, in context: ModelContext) -> DownloadItem? {
+        let descriptor = FetchDescriptor<DownloadItem>()
+        let items = (try? context.fetch(descriptor)) ?? []
+
+        // Priority 1: Identical destination path on disk
+        if let match = items.first(where: { $0.destinationPath.lowercased() == destinationPath.lowercased() }) {
+            return match
+        }
+
+        // Priority 2: Identical source URL
+        let trimmedURL = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let match = items.first(where: { $0.urlString.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedURL }) {
+            return match
+        }
+
+        // Priority 3: Identical filename
+        let filename = URL(fileURLWithPath: destinationPath).lastPathComponent
+        if let match = items.first(where: { $0.filename.lowercased() == filename.lowercased() }) {
+            return match
+        }
+
+        return nil
+    }
+
+    private func generateUniqueFilename(baseName: String, in folder: URL) -> String {
+        let url = URL(fileURLWithPath: baseName)
+        let ext = url.pathExtension
+        let stem = url.deletingPathExtension().lastPathComponent
+
+        let descriptor = FetchDescriptor<DownloadItem>()
+        let existingItems = (try? modelContext?.fetch(descriptor)) ?? []
+
+        var index = 1
+        while true {
+            let candidate = ext.isEmpty ? "\(stem) (\(index))" : "\(stem) (\(index)).\(ext)"
+            let candidateURL = folder.appendingPathComponent(candidate)
+            let existsOnDisk = FileManager.default.fileExists(atPath: candidateURL.path)
+            let existsInList = existingItems.contains {
+                $0.destinationPath.lowercased() == candidateURL.path.lowercased() || $0.filename.lowercased() == candidate.lowercased()
+            }
+
+            if !existsOnDisk && !existsInList {
+                return candidate
+            }
+            index += 1
+        }
+    }
+
+    @MainActor
+    private func promptDuplicateAction(
+        filename: String,
+        destinationFolder: URL,
+        existingItem: DownloadItem?,
+        fileExistsOnDisk: Bool
+    ) async -> DuplicateResolution {
+        // Ensure IDMac is active and main window is displayed
+        MenuBarManager.shared.showMainWindow()
+        NSApp.activate(ignoringOtherApps: true)
+
+        let targetPath = destinationFolder.appendingPathComponent(filename).path
+
+        return await withCheckedContinuation { continuation in
+            let alert = NSAlert()
+            alert.messageText = "Duplicate Download Detected"
+            alert.alertStyle = .warning
+
+            if let appIcon = NSApp.applicationIconImage {
+                alert.icon = appIcon
+            }
+
+            var infoParts: [String] = []
+
+            if let existing = existingItem {
+                let sizeStr = existing.fileSize > 0 ? " (\(FormatUtils.formatBytes(existing.fileSize)))" : ""
+                switch existing.status {
+                case .completed:
+                    infoParts.append("The file \"\(filename)\" has already been downloaded and is in your download list.")
+                    infoParts.append("• Status: Completed\(sizeStr)")
+                case .downloading, .connecting:
+                    let pct = existing.fileSize > 0 ? " (\(Int(Double(existing.downloadedBytes) / Double(existing.fileSize) * 100))%)" : ""
+                    infoParts.append("The file \"\(filename)\" is currently downloading in IDMac.")
+                    infoParts.append("• Status: Downloading in progress\(pct)")
+                case .paused:
+                    infoParts.append("The file \"\(filename)\" is in your download list (Paused).")
+                    infoParts.append("• Status: Paused\(sizeStr)")
+                case .queued:
+                    infoParts.append("The file \"\(filename)\" is in your download list (Queued).")
+                    infoParts.append("• Status: Queued\(sizeStr)")
+                case .failed:
+                    infoParts.append("The file \"\(filename)\" is in your download list (Failed).")
+                    infoParts.append("• Status: Failed previously")
+                }
+            } else if fileExistsOnDisk {
+                infoParts.append("A file named \"\(filename)\" already exists in your destination folder.")
+            }
+
+            if fileExistsOnDisk {
+                infoParts.append("• Location: \(targetPath)")
+            }
+
+            infoParts.append("\nWhat would you like to do?")
+            alert.informativeText = infoParts.joined(separator: "\n")
+
+            // Button 1 (Default / Key Equivalent: Return): Auto-Rename (Keep Both)
+            let renameBtn = alert.addButton(withTitle: "Auto-Rename (Keep Both)")
+            renameBtn.keyEquivalent = "\r"
+
+            // Button 2: Overwrite
+            alert.addButton(withTitle: "Overwrite")
+
+            // Button 3 (Key Equivalent: Escape): Cancel
+            let cancelBtn = alert.addButton(withTitle: "Cancel")
+            cancelBtn.keyEquivalent = "\u{1b}"
+
+            // Button 4: Reveal in Finder (if file exists on disk)
+            if fileExistsOnDisk {
+                alert.addButton(withTitle: "Reveal in Finder")
+            }
+
+            let handleResponse = { (response: NSApplication.ModalResponse) in
+                switch response {
+                case .alertFirstButtonReturn: // Auto-Rename
+                    let uniqueName = self.generateUniqueFilename(baseName: filename, in: destinationFolder)
+                    continuation.resume(returning: .autoRename(uniqueName))
+
+                case .alertSecondButtonReturn: // Overwrite
+                    continuation.resume(returning: .overwrite)
+
+                case .alertThirdButtonReturn: // Cancel
+                    continuation.resume(returning: .cancel)
+
+                default: // Fourth button (1003): Reveal in Finder
+                    NSWorkspace.shared.selectFile(targetPath, inFileViewerRootedAtPath: destinationFolder.path)
+                    continuation.resume(returning: .cancel)
+                }
+            }
+
+            if let window = NSApp.windows.first(where: { $0.isVisible && !$0.isFloatingPanel && $0.canBecomeKey }),
+               window.attachedSheet == nil {
+                alert.beginSheetModal(for: window) { response in
+                    handleResponse(response)
+                }
+            } else {
+                let response = alert.runModal()
+                handleResponse(response)
+            }
         }
     }
 

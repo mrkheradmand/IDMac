@@ -175,15 +175,16 @@ public final class LocalServer: ObservableObject {
         let downloadsFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
 
         Task {
+            MenuBarManager.shared.showMainWindow()
+
             await DownloadCoordinator.shared.addDownload(
                 urlString: urlString,
+                customFilename: filename,
                 destinationFolder: downloadsFolder,
                 connectionCount: UserDefaults.standard.integer(forKey: "defaultConnections") > 0 ? UserDefaults.standard.integer(forKey: "defaultConnections") : 8,
                 modelContext: context,
                 startImmediately: true
             )
-
-            MenuBarManager.shared.showMainWindow()
         }
     }
 
