@@ -50,11 +50,11 @@ public final class UpdateManager: ObservableObject {
     }
 
     public var currentVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.6"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.7"
     }
 
     public var currentBuild: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "7"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "8"
     }
 
     public func startBackgroundCheck() {

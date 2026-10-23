@@ -6,20 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## 1.0.6 (build 7) — 2026-10-23
+## 1.0.7 (build 8) — 2026-10-23
 
 ### Added
-- **macOS Menu Bar Status Item (`MenuBarManager.swift`)**:
-  - Direct 1-Click Launch: Clicking the menu bar icon instantly opens and focuses IDMac (restoring the application from background, revealing the Dock icon, and ordering the main window frontmost).
-  - Contextual Actions: Right-clicking (or Control-clicking) the menu bar icon displays the quick action dropdown menu with real-time download status, "Add Download URL…", "Resume All", "Pause All", "Settings…", "Check for Updates…", and "Quit IDMac".
-  - Template icon (`arrow.down.circle`) adapting dynamically to macOS Light and Dark appearance.
-- **Window Close Interception & Dock Hiding**:
-  - Seamless background persistence: Closing the main window (via close button or Cmd+W) hides the window while IDMac continues running in the menu bar.
-  - Dynamic Dock icon suppression: Option to switch application activation policy to `.accessory` when the main window is closed, completely removing IDMac from the macOS Dock and Cmd+Tab application switcher.
-  - Instant window restoration: Clicking "Show IDMac", triggering "Add Download URL…", or reopening IDMac from Launchpad/Spotlight restores `.regular` activation policy, re-displays the Dock icon, and brings the main window forward.
-- **Launch at System Startup (`LaunchAtLoginManager.swift`)**:
-  - Modern macOS 13+ native `ServiceManagement` (`SMAppService.mainApp`) integration to register/unregister IDMac for launch at login.
-  - No legacy helper bundles or elevated privileges required.
+- **Direct 1-Click Menu Bar App Activation (`MenuBarManager.swift`)**:
+  - Left-clicking (primary click) the macOS menu bar icon instantly opens and focuses IDMac (restoring the application from background, re-displaying the Dock icon, and bringing the main window frontmost).
+  - Right-clicking (or Control-clicking) reveals the quick action dropdown menu with real-time download status, "Add Download URL…", "Resume All", "Pause All", "Settings…", "Check for Updates…", and "Quit IDMac".
 - **Mozilla Firefox Browser Extension (`extensions/firefox/`)**:
   - Created complete WebExtensions companion extension for Mozilla Firefox.
   - Automatic download interception via `browser.downloads.onCreated`, pausing native single-stream browser downloads and routing them to IDMac for multi-part acceleration.
@@ -45,6 +37,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Resolved the bug where connection segments displayed as "66 KB / 66 KB" regardless of the true file size (e.g. 8 × 66 KB on a 12.7 MB file).
   - Pre-allocated segment models in SwiftData with exact byte ranges (`startByte` to `endByte`) prior to launching worker task groups instead of dynamically instantiating segments from the first 64 KB memory chunk.
   - Added self-healing display logic in `SegmentInspectorView.swift` to automatically repair and accurately format any legacy completed downloads stored in SwiftData.
+- Bumped application bundle version to 1.0.7 (build 8).
+
+### Removed
+- None.
+
+---
+
+## 1.0.6 (build 7) — 2026-10-23
+
+### Added
+- **macOS Menu Bar Status Item (`MenuBarManager.swift`)**:
+  - Implemented persistent system status item (`NSStatusItem`) with template icon (`arrow.down.circle`) adapting dynamically to macOS Light and Dark appearance.
+  - Real-time download progress summary header directly inside the menu bar dropdown ("IDMac: Downloading (X) • Y MB/s" or "IDMac: Idle").
+  - Quick action controls: "Show IDMac", "Add Download URL…", "Resume All", "Pause All", "Settings…", "Check for Updates…", and "Quit IDMac".
+  - Dynamic delegate menu population updating download statistics each time the menu bar dropdown is displayed.
+- **Window Close Interception & Dock Hiding**:
+  - Seamless background persistence: Closing the main window (via close button or Cmd+W) hides the window while IDMac continues running in the menu bar.
+  - Dynamic Dock icon suppression: Option to switch application activation policy to `.accessory` when the main window is closed, completely removing IDMac from the macOS Dock and Cmd+Tab application switcher.
+  - Instant window restoration: Clicking "Show IDMac", triggering "Add Download URL…", or reopening IDMac from Launchpad/Spotlight restores `.regular` activation policy, re-displays the Dock icon, and brings the main window forward.
+- **Launch at System Startup (`LaunchAtLoginManager.swift`)**:
+  - Modern macOS 13+ native `ServiceManagement` (`SMAppService.mainApp`) integration to register/unregister IDMac for launch at login.
+  - No legacy helper bundles or elevated privileges required.
+- **Menu Bar & Startup Settings Section (`SettingsView.swift`)**:
+  - Added dedicated configuration controls in the "General" settings tab:
+    - "Launch IDMac at system startup" toggle (`SMAppService.mainApp`).
+    - "Show status icon in menu bar" toggle (`showMenuBarIcon`).
+    - "Keep IDMac running in menu bar when window is closed" toggle (`keepRunningInMenuBar`).
+    - "Hide Dock icon when window is closed" toggle (`hideDockIconWhenClosed`).
+- **Download Coordinator Global Controls (`DownloadCoordinator.swift`)**:
+  - Added `resumeAllDownloads()`, `pauseAllDownloads()`, and `getActiveDownloadStats()` helpers for menu bar and global shortcut triggers.
+
+### Modified
 - Connected `DownloadCoordinator` model context lifecycle to `MainSplitView.onAppear` to guarantee swift data persistence on startup.
 - Connected application main menu "Downloads -> Resume All" (Cmd+Shift+R) and "Downloads -> Stop All" (Cmd+Shift+S) to coordinator methods.
 - Bumped application bundle version to 1.0.6 (build 7).
