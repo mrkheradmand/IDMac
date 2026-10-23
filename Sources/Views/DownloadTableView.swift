@@ -26,53 +26,54 @@ public struct DownloadTableView: View {
                         .lineLimit(1)
                 }
             }
-            .width(min: 160, ideal: 240)
+            .width(min: 140, ideal: 200)
 
             TableColumn("Size") { item in
                 Text(item.formattedSize)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.secondary)
             }
-            .width(ideal: 85)
+            .width(min: 55, ideal: 70)
 
             TableColumn("Status") { item in
                 StatusBadge(status: item.status)
             }
-            .width(ideal: 110)
+            .width(min: 75, ideal: 90)
 
             TableColumn("Progress") { item in
                 ClassicProgressBar(progress: item.progress, height: 14, showPercentage: true)
             }
-            .width(min: 120, ideal: 180)
+            .width(min: 90, ideal: 130)
 
             TableColumn("Speed") { item in
                 Text(item.formattedSpeed)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(item.status == .downloading ? .blue : .secondary)
             }
-            .width(ideal: 90)
+            .width(min: 60, ideal: 75)
 
             TableColumn("Time Left") { item in
                 Text(item.formattedETA)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.secondary)
             }
-            .width(ideal: 85)
+            .width(min: 60, ideal: 75)
 
             TableColumn("Resume") { item in
                 Text(item.supportsResume ? "Yes" : "No")
                     .font(.system(size: 11))
                     .foregroundColor(item.supportsResume ? .green : .orange)
             }
-            .width(ideal: 65)
+            .width(min: 50, ideal: 60)
 
             TableColumn("Date Added") { item in
                 Text(item.dateAdded.formatted(date: .abbreviated, time: .shortened))
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
             }
-            .width(ideal: 130)
+            .width(min: 90, ideal: 110)
         }
+        .scrollIndicators(.never, axes: .horizontal)
         .contextMenu(forSelectionType: UUID.self) { selectedIds in
             if let firstId = selectedIds.first, let item = items.first(where: { $0.id == firstId }) {
                 contextMenuContent(for: item)

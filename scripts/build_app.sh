@@ -150,9 +150,9 @@ cat << 'EOF' > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.0.3</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>4</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSPrincipalClass</key>
@@ -183,6 +183,11 @@ if [[ -d "${ROOT_DIR}/Resources/Assets.xcassets" ]]; then
             --output-partial-info-plist /tmp/actool_partial.plist >/dev/null 2>&1 || true
         rm -f /tmp/actool_partial.plist
     fi
+fi
+
+# Copy standalone .icns file if present
+if [[ -f "${ROOT_DIR}/Resources/AppIcon.icns" ]]; then
+    cp "${ROOT_DIR}/Resources/AppIcon.icns" "${RESOURCES_DIR}/AppIcon.icns"
 fi
 
 # Ad-hoc code signing for local macOS execution

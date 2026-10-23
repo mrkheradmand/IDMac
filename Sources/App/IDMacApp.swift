@@ -21,6 +21,7 @@ struct IDMacApp: App {
         WindowGroup {
             ContentView()
         }
+        .defaultSize(width: 1060, height: 640)
         .modelContainer(sharedModelContainer)
         .commands {
             CommandGroup(replacing: .newItem) {

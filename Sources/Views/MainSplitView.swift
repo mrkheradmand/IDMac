@@ -47,6 +47,7 @@ public struct MainSplitView: View {
     public var body: some View {
         NavigationSplitView {
             SidebarView(selection: $selectedFilter)
+                .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
         } detail: {
             VStack(spacing: 0) {
                 // Main Downloads Table
