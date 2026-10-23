@@ -90,9 +90,7 @@ public final class DownloadCoordinator {
 
         speedSamplers[itemId] = (bytes: item.downloadedBytes, timestamp: Date())
 
-        let task = Task { [weak self] in
-            guard let self = self else { return }
-
+        let task = Task {
             let existingSegments = item.segments.sorted(by: { $0.segmentIndex < $1.segmentIndex }).map {
                 (index: $0.segmentIndex, start: $0.startByte, end: $0.endByte, current: $0.currentByte, isCompleted: $0.isCompleted)
             }
@@ -101,19 +99,19 @@ public final class DownloadCoordinator {
                 existingSegments: existingSegments,
                 totalSize: item.fileSize,
                 supportsResume: item.supportsResume,
-                onProgress: { [weak self] update in
+                onProgress: { update in
                     Task { @MainActor in
-                        self?.handleProgress(update: update, for: itemId)
+                        DownloadCoordinator.shared.handleProgress(update: update, for: itemId)
                     }
                 },
-                onComplete: { [weak self] in
+                onComplete: {
                     Task { @MainActor in
-                        self?.handleComplete(for: itemId)
+                        DownloadCoordinator.shared.handleComplete(for: itemId)
                     }
                 },
-                onError: { [weak self] error in
+                onError: { error in
                     Task { @MainActor in
-                        self?.handleError(error, for: itemId)
+                        DownloadCoordinator.shared.handleError(error, for: itemId)
                     }
                 }
             )

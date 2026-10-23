@@ -116,6 +116,7 @@ done < <(find "${ROOT_DIR}/Sources" -type f -name "*.swift")
 echo -e "${BLUE}Compiling ${#SOURCE_FILES[@]} Swift sources...${NC}"
 
 swiftc "${OPT_FLAGS[@]}" \
+    -swift-version 5 \
     -target arm64-apple-macos14.0 \
     -module-name IDMac \
     -parse-as-library \

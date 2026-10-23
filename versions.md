@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Swift 6 Strict Concurrency Compliance**:
   - Enforced `@MainActor` global actor isolation across SwiftUI view structures (`DownloadTableView`, `MainSplitView`, `SidebarView`, `SegmentInspectorView`, `AddDownloadSheet`, `SettingsView`, and `IDMacApp`).
   - Converted `coordinator` stored property to an isolated computed property (`private var coordinator: DownloadCoordinator { DownloadCoordinator.shared }`) across views, resolving the compiler error where `@MainActor`-isolated static property `shared` was referenced in a synchronous non-isolated context.
+  - Eliminated captured `weak self` variables from concurrently executing closures in `DownloadCoordinator.swift` by dispatching directly to `@MainActor` singleton (`DownloadCoordinator.shared`), resolving `reference to captured var 'self' in concurrently-executing code` errors.
+  - Explicitly pinned `-swift-version 5` in `scripts/build_app.sh` to guarantee identical compiler language mode semantics across all local and CI toolchains.
   - Resolved GitHub Actions CI release build failure on Xcode 16 / macOS-14 runners.
 - Bumped application bundle version to 1.0.5 (build 6).
 
