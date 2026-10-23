@@ -58,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 window.tabbingIdentifier = ""
             }
             self?.cleanAllMenus()
+            UpdateManager.shared.startBackgroundCheck()
         }
     }
 
@@ -112,6 +113,21 @@ struct IDMacApp: App {
         .defaultSize(width: 1060, height: 640)
         .modelContainer(sharedModelContainer)
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About IDMac") {
+                    AboutWindowController.shared.show()
+                }
+            }
+
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    AboutWindowController.shared.show()
+                    Task {
+                        await UpdateManager.shared.checkForUpdates(manual: true)
+                    }
+                }
+            }
+
             CommandGroup(replacing: .newItem) {
                 Button("Add New Download URL...") {
                     DownloadCoordinator.shared.isAddingDownloadSheetPresented = true

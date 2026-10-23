@@ -17,8 +17,16 @@ public struct AddDownloadSheet: View {
     private var coordinator = DownloadCoordinator.shared
 
     public init() {
-        let defaultFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSHomeDirectory())
+        let savedPath = UserDefaults.standard.string(forKey: "defaultDownloadDirectory")
+        let defaultFolder: URL
+        if let savedPath = savedPath, !savedPath.isEmpty, FileManager.default.fileExists(atPath: savedPath) {
+            defaultFolder = URL(fileURLWithPath: savedPath)
+        } else {
+            defaultFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSHomeDirectory())
+        }
+        let savedConnections = UserDefaults.standard.integer(forKey: "defaultConnections")
         self._selectedFolderURL = State(initialValue: defaultFolder)
+        self._connectionCount = State(initialValue: savedConnections > 0 ? savedConnections : 8)
     }
 
     public var body: some View {

@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.0.4 (build 5) — 2026-10-23
+
+### Added
+- **Automatic GitHub Release Updater (`UpdateManager.swift`)**:
+  - Asynchronous background and on-demand checking against `mrkheradmand/IDMac/releases/latest`.
+  - Automatic version parsing and semantic version comparison (`isVersionNewer`).
+  - Seamless DMG download with direct mounting in Finder for 1-click update installation.
+  - Added "Check for Updates…" menu command in the application menu (`CommandGroup(after: .appInfo)`).
+- **Native About Window (`AboutWindow.swift`)**:
+  - Implemented custom centered `NSPanel` (`AboutWindowController`) with full-resolution app icon, version details, and tagline.
+  - Interactive software update status badge (`idle`, `checking`, `upToDate`, `available`, `downloading`, `readyToInstall`, `error`) with direct "Download & Install Update" action.
+  - Quick access links to the GitHub repository, releases, and MIT license.
+- **Redesigned macOS HIG Settings Window (`SettingsView.swift`)**:
+  - Architected a 4-tab native settings interface (`General`, `Acceleration`, `Updates`, `Advanced`) styled with Apple Human Interface Guidelines (`540 × 470 pt`) and `.formStyle(.grouped)`.
+  - **General**: Custom download folder picker via `NSOpenPanel`, clipboard monitoring toggle, completion chime toggle, notification banner toggle, and system sleep prevention.
+  - **Acceleration**: Default connection streams picker (1–32 streams), max active downloads picker, socket timeout picker, retry attempts picker, and stream buffer size picker.
+  - **Updates**: Dedicated software update card with live check trigger, background check toggle, check frequency picker, pre-release/beta toggle, and SHA256 security guarantee.
+  - **Advanced**: File pre-allocation mode picker (Sparse vs full `fcntl(F_PREALLOCATE)`), aggregate bandwidth throttling / speed limit controls, Finder temporary folder reveal, and factory reset action.
+- **Rule Persistence (`.agents/rules/macos-ui-rules.md`)**:
+  - Documented permanent Apple HIG rules for macOS Settings, About panels, modal sheets, and window tabbing.
+
+### Modified
+- Connected custom `AboutWindowController` to the application menu (`CommandGroup(replacing: .appInfo)`), replacing the standard generic alert.
+- Updated `AddDownloadSheet.swift` to automatically pre-populate the user's custom default download folder and connection stream count from settings.
+- Initialized `UpdateManager.shared.startBackgroundCheck()` inside `AppDelegate.applicationDidFinishLaunching`.
+- Bumped application bundle version to 1.0.4 (build 5).
+
+### Removed
+- Removed legacy unorganized single-tab Settings form.
+
+---
+
 ## 1.0.3 (build 4) — 2026-10-23
 
 ### Added
