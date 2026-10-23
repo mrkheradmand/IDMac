@@ -57,14 +57,21 @@ IDMac/
 
 ## How to Open and Run
 
-### Option 1: Xcode
-Double-click [`IDMac.xcodeproj`](./IDMac.xcodeproj) to open the project in Xcode, then select target **IDMac (macOS)** and click **Run** (`⌘R`).
-
-### Option 2: Terminal / Swift PM
-To build and run from the command line:
+### Option 1: Using the Build Script (Recommended)
+You can compile and package the native macOS `.app` bundle using the included build script:
 
 ```bash
-swift run \
-  -Xswiftc -load-plugin-library -Xswiftc /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftDataMacros.dylib \
-  -Xswiftc -load-plugin-library -Xswiftc /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib
+# Build release IDMac.app bundle
+./scripts/build_app.sh
+
+# Build and immediately launch IDMac.app
+./scripts/build_app.sh --run
+
+# Fast debug build
+./scripts/build_app.sh -c debug
 ```
+
+The resulting application is placed in [`build/IDMac.app`](file:///Users/jey/DEV/TEST/REA/IDM/build/IDMac.app).
+
+### Option 2: Xcode
+Double-click [`IDMac.xcodeproj`](./IDMac.xcodeproj) to open the project in Xcode, then select target **IDMac (macOS)** and click **Run** (`⌘R`).
