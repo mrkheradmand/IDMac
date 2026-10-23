@@ -1,0 +1,26 @@
+name: IDMac
+options:
+  bundleIdPrefix: com.idmac
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+
+targets:
+  IDMac:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+      - Resources
+    settings:
+      base:
+        PRODUCT_NAME: IDMac
+        PRODUCT_BUNDLE_IDENTIFIER: com.idmac.app
+        INFOPLIST_FILE: Resources/Info.plist
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        SWIFT_VERSION: "6.0"
+        ENABLE_PREVIEWS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: NO
