@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.0.10 (build 11) — 2026-10-23
+
+### Added
+- None.
+
+### Modified
+- **Chrome Extension Roadmap Sheet (`SettingsView.swift`)**:
+  - Embedded Manifest V3 technical architecture and implementation roadmap directly within the in-app modal sheet.
+- Bumped application bundle version to 1.0.10 (build 11).
+
+### Removed
+- Removed all file references and links to internal developer documentation from application windows (`ChromePlanSheet`) and project documentation.
+
+---
+
 ## 1.0.9 (build 10) — 2026-10-23
 
 ### Added
@@ -66,7 +81,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Endpoints: `GET /health` (heartbeat & version check) and `POST /add` (queued download task ingestion with CORS support).
 - **Custom URL Scheme (`idmac://`)**:
   - Registered `idmac://add?url=...` in `Info.plist` and `IDMacApp.swift` via `.onOpenURL` for instant browser and CLI link invocation.
-- **Chrome Extension Architecture Plan (`developer_docs/CHROME_EXTENSION_PLAN.md`)**:
+- **Chrome Extension Architecture Plan**:
   - Formulated full Manifest V3 architectural plan with sequence diagrams, service worker lifecycle, and declarativeNetRequest integration.
 
 ### Modified
@@ -154,19 +169,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Advanced**: File pre-allocation mode picker (Sparse vs full `fcntl(F_PREALLOCATE)`), aggregate bandwidth throttling / speed limit controls, Finder temporary folder reveal, and factory reset action.
 - **Rule Persistence (`.agents/rules/macos-ui-rules.md`, `.agents/rules/documentation-rules.md`)**:
   - Documented permanent Apple HIG rules for macOS Settings, About panels, modal sheets, and window tabbing.
-  - Established permanent rule requiring dual-tier documentation maintenance (`/README.md` for users, `/developer_docs/README.md` for developers) on every code change.
+  - Established permanent rule requiring comprehensive documentation maintenance on every code change.
 - **Licensing & Copyright**:
   - Added official MIT License file (`LICENSE`) with copyright notice `Copyright (c) 2026 J Kheradmand`.
   - Configured `NSHumanReadableCopyright` in `Resources/Info.plist` and `scripts/build_app.sh`.
   - Added copyright notice in `AboutWindow.swift` view footer.
-  - Added dedicated License & Copyright sections to both `README.md` and `developer_docs/README.md`.
+  - Added dedicated License & Copyright sections to `README.md`.
 - **Seamless Toolbar Search Field (`NativeSearchField.swift`)**:
   - Implemented custom `UnborderedSearchField` suppressing the macOS blue focus ring border.
   - Added global click-to-unfocus monitor dismissing the search box whenever clicking anywhere else in the application.
-- **Dual-Tier Documentation Framework**:
+- **Documentation Framework**:
   - Created user-facing non-technical manual in `README.md` focusing on features, installation, Gatekeeper guidance, and usage.
-  - Created developer systems architecture guide in `developer_docs/README.md` covering Swift concurrency, POSIX I/O, SwiftData persistence, AppKit bridges, and build pipelines.
-  - Created practical step-by-step GitHub release guide in `developer_docs/HOW_TO_RELEASE.md`.
+  - Created developer systems architecture guide covering Swift concurrency, POSIX I/O, SwiftData persistence, AppKit bridges, and build pipelines.
+  - Created practical step-by-step GitHub release guide.
 
 ### Modified
 - Replaced standard `.searchable` with `NativeSearchField` in the window toolbar for borderless focus styling and click-outside dismissal.
@@ -179,7 +194,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Initialized `UpdateManager.shared.startBackgroundCheck()` inside `AppDelegate.applicationDidFinishLaunching`.
 - Enhanced `scripts/build_app.sh` to dynamically extract application version (`CFBundleShortVersionString`) and build number (`CFBundleVersion`) from `Resources/Info.plist`.
 - Bumped application bundle version to 1.0.4 (build 5).
-- Relocated and consolidated `Architectural-Comparison.md` permanently into `developer_docs/Architectural-Comparison.md`.
+- Relocated and consolidated architectural comparison documentation.
 
 ### Removed
 - Removed legacy unorganized single-tab Settings form.
@@ -190,7 +205,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Added `AppDelegate` in `IDMacApp.swift` with `NSWindow.allowsAutomaticWindowTabbing = false` and menu item scrubber to disallow window tabbing.
-- Created `developer_docs/RELEASE_PROCESS_INSTRUCTIONS.md` containing full step-by-step release operations.
+- Created release operations documentation containing full step-by-step procedures.
 - Created complete automated GitHub release infrastructure:
   - `scripts/build_dmg.sh`: Native macOS APFS/UDZO disk image builder with `/Applications` symlink and SHA256 checksum verification.
   - `scripts/release_metadata.py`: Tri-source validator (`Info.plist`, `versions.md`, Git tag) and smart release note aggregator.
@@ -222,7 +237,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Added `Resources/AppIcon_EightPartRing_Clean.png` with 100% alpha transparency outside the squircle and a subtle native macOS drop shadow.
 - Created persistent rule in `.agents/rules/app-icon-rules.md` requiring that all future macOS app icon assets use 100% transparent backgrounds outside the squircle.
-- Documented full icon asset specifications in `developer_docs/app_icon_guidelines.md`.
+- Documented full icon asset specifications.
 
 ### Modified
 - Switched active application icon to the Eight-Part Ring concept (`05-eight-part-ring.png`), featuring eight cyan and mint stream arcs surrounding a downward accelerator arrow.

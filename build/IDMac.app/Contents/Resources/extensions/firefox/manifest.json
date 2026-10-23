@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "IDMac Integration",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Seamlessly intercepts and accelerates Firefox downloads with IDMac native multi-stream accelerator.",
   "icons": {
     "16": "icons/icon-16.png",

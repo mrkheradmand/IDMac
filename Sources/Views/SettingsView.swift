@@ -638,11 +638,11 @@ private struct ChromePlanSheet: View {
                     }
                     .font(.system(size: 11))
 
-                    Text("Detailed Technical Blueprint")
+                    Text("Implementation Roadmap")
                         .font(.system(size: 13, weight: .bold))
                         .padding(.top, 4)
 
-                    Text("A complete system architecture specification has been drafted in developer_docs/CHROME_EXTENSION_PLAN.md with sequence diagrams and manifest specs.")
+                    Text("A modular Manifest V3 architecture featuring background event listeners, seamless native bridge handoff to IDMac's acceleration engine, and full dark mode support.")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
@@ -652,11 +652,6 @@ private struct ChromePlanSheet: View {
             Divider()
 
             HStack {
-                Button("Open Plan Document") {
-                    let planPath = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("developer_docs/CHROME_EXTENSION_PLAN.md")
-                    NSWorkspace.shared.open(planPath)
-                }
-
                 Spacer()
 
                 Button("Close") {
