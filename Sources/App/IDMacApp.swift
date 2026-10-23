@@ -85,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
+@MainActor
 struct IDMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 

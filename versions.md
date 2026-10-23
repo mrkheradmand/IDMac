@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.0.5 (build 6) — 2026-10-23
+
+### Added
+- None.
+
+### Modified
+- **Swift 6 Strict Concurrency Compliance**:
+  - Enforced `@MainActor` global actor isolation across SwiftUI view structures (`DownloadTableView`, `MainSplitView`, `SidebarView`, `SegmentInspectorView`, `AddDownloadSheet`, `SettingsView`, and `IDMacApp`).
+  - Converted `coordinator` stored property to an isolated computed property (`private var coordinator: DownloadCoordinator { DownloadCoordinator.shared }`) across views, resolving the compiler error where `@MainActor`-isolated static property `shared` was referenced in a synchronous non-isolated context.
+  - Resolved GitHub Actions CI release build failure on Xcode 16 / macOS-14 runners.
+- Bumped application bundle version to 1.0.5 (build 6).
+
+### Removed
+- None.
+
+---
+
 ## 1.0.4 (build 5) — 2026-10-23
 
 ### Added

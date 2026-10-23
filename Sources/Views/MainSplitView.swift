@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+@MainActor
 public struct MainSplitView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \DownloadItem.dateAdded, order: .reverse) private var allDownloads: [DownloadItem]
@@ -11,7 +12,9 @@ public struct MainSplitView: View {
     @State private var isAddSheetPresented = false
     @State private var isSettingsSheetPresented = false
 
-    private var coordinator = DownloadCoordinator.shared
+    private var coordinator: DownloadCoordinator {
+        DownloadCoordinator.shared
+    }
 
     public init() {}
 

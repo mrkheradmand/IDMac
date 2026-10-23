@@ -31,6 +31,7 @@ public enum SidebarFilter: Hashable, Identifiable {
     }
 }
 
+@MainActor
 public struct SidebarView: View {
     @Binding public var selection: SidebarFilter?
     @Query private var allDownloads: [DownloadItem]

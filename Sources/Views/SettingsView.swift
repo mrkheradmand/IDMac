@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+@MainActor
 public struct SettingsView: View {
     @State private var selectedTab: Int = 0
 

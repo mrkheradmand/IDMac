@@ -2,12 +2,15 @@ import SwiftUI
 import SwiftData
 import AppKit
 
+@MainActor
 public struct DownloadTableView: View {
     public let items: [DownloadItem]
     @Binding public var selection: UUID?
 
     @Environment(\.modelContext) private var modelContext
-    private var coordinator = DownloadCoordinator.shared
+    private var coordinator: DownloadCoordinator {
+        DownloadCoordinator.shared
+    }
 
     public init(items: [DownloadItem], selection: Binding<UUID?>) {
         self.items = items
@@ -138,6 +141,7 @@ public struct DownloadTableView: View {
         }
     }
 
+    @MainActor
     private func handlePrimaryAction(for item: DownloadItem) {
         if item.status == .completed {
             NSWorkspace.shared.open(URL(fileURLWithPath: item.destinationPath))

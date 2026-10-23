@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
+@MainActor
 public struct AddDownloadSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -14,7 +15,9 @@ public struct AddDownloadSheet: View {
     @State private var detectedSize: Int64 = 0
     @State private var detectedResume = false
 
-    private var coordinator = DownloadCoordinator.shared
+    private var coordinator: DownloadCoordinator {
+        DownloadCoordinator.shared
+    }
 
     public init() {
         let savedPath = UserDefaults.standard.string(forKey: "defaultDownloadDirectory")
