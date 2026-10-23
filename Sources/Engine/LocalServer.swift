@@ -1,6 +1,6 @@
 import Foundation
-import Network
 import AppKit
+import Darwin
 
 @MainActor
 public final class LocalServer: ObservableObject {
@@ -8,125 +8,167 @@ public final class LocalServer: ObservableObject {
 
     @Published public var isRunning: Bool = false
     @Published public var port: UInt16 = 23485
+    @Published public var lastErrorMessage: String? = nil
 
-    private var listener: NWListener?
+    private var serverSocket: Int32 = -1
+    private let serverQueue = DispatchQueue(label: "com.idmac.localserver.accept", qos: .userInitiated)
 
     private init() {}
 
     public func start() {
-        guard listener == nil else { return }
+        stop()
 
-        do {
-            let tcpOptions = NWProtocolTCP.Options()
-            let params = NWParameters(tls: nil, tcp: tcpOptions)
-            params.requiredLocalEndpoint = NWEndpoint.hostPort(
-                host: NWEndpoint.Host("127.0.0.1"),
-                port: NWEndpoint.Port(rawValue: port)!
-            )
+        let fd = socket(AF_INET, SOCK_STREAM, 0)
+        guard fd >= 0 else {
+            let err = String(cString: strerror(errno))
+            self.lastErrorMessage = "Failed to create socket: \(err)"
+            print("[LocalServer] \(self.lastErrorMessage!)")
+            self.isRunning = false
+            return
+        }
 
-            let listener = try NWListener(using: params, on: NWEndpoint.Port(rawValue: port)!)
-            self.listener = listener
+        var yes: Int32 = 1
+        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, socklen_t(MemoryLayout<Int32>.size))
 
-            listener.stateUpdateHandler = { [weak self] state in
-                Task { @MainActor [weak self] in
-                    switch state {
-                    case .ready:
-                        self?.isRunning = true
-                        print("LocalServer listening on http://127.0.0.1:\(self?.port ?? 23485)")
-                    case .failed(let error):
-                        print("LocalServer failed: \(error.localizedDescription)")
-                        self?.isRunning = false
-                    case .cancelled:
-                        self?.isRunning = false
-                    default:
-                        break
-                    }
-                }
+        var addr = sockaddr_in()
+        addr.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = port.bigEndian
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1")
+
+        let bindResult = withUnsafePointer(to: &addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
             }
+        }
 
-            listener.newConnectionHandler = { [weak self] connection in
-                connection.start(queue: .main)
-                Task { @MainActor [weak self] in
-                    self?.handleConnection(connection)
-                }
-            }
+        guard bindResult == 0 else {
+            let err = String(cString: strerror(errno))
+            close(fd)
+            self.lastErrorMessage = "Failed to bind to 127.0.0.1:\(port): \(err)"
+            print("[LocalServer] \(self.lastErrorMessage!)")
+            self.isRunning = false
+            return
+        }
 
-            listener.start(queue: .main)
-        } catch {
-            print("Failed to start LocalServer on port \(port): \(error.localizedDescription)")
+        guard listen(fd, 32) == 0 else {
+            let err = String(cString: strerror(errno))
+            close(fd)
+            self.lastErrorMessage = "Failed to listen on 127.0.0.1:\(port): \(err)"
+            print("[LocalServer] \(self.lastErrorMessage!)")
+            self.isRunning = false
+            return
+        }
+
+        self.serverSocket = fd
+        self.isRunning = true
+        self.lastErrorMessage = nil
+        print("[LocalServer] Listening successfully on http://127.0.0.1:\(port)")
+
+        let currentSocket = fd
+        serverQueue.async { [weak self] in
+            self?.acceptLoop(serverFd: currentSocket)
         }
     }
 
     public func stop() {
-        listener?.cancel()
-        listener = nil
         isRunning = false
+        if serverSocket >= 0 {
+            close(serverSocket)
+            serverSocket = -1
+        }
     }
 
-    private func handleConnection(_ connection: NWConnection) {
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] content, _, isComplete, error in
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                if let data = content, let requestString = String(data: data, encoding: .utf8) {
-                    let response = self.processRequest(requestString)
-                    self.sendResponse(response, on: connection)
-                } else {
-                    connection.cancel()
+    nonisolated private func acceptLoop(serverFd: Int32) {
+        while true {
+            var clientAddr = sockaddr_in()
+            var clientLen = socklen_t(MemoryLayout<sockaddr_in>.size)
+
+            let clientFd = withUnsafeMutablePointer(to: &clientAddr) {
+                $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                    accept(serverFd, $0, &clientLen)
                 }
+            }
+
+            guard clientFd >= 0 else {
+                // If socket was closed by stop(), exit accept loop cleanly
+                break
+            }
+
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.handleClient(clientFd)
             }
         }
     }
 
-    private func processRequest(_ request: String) -> (status: String, body: String) {
-        let lines = request.components(separatedBy: "\r\n")
+    nonisolated private func handleClient(_ fd: Int32) {
+        defer { close(fd) }
+
+        var buffer = [UInt8](repeating: 0, count: 65536)
+        let bytesRead = read(fd, &buffer, buffer.count)
+        guard bytesRead > 0 else { return }
+
+        guard let requestString = String(bytes: buffer[0..<bytesRead], encoding: .utf8) else {
+            sendResponse(status: "400 Bad Request", body: "{\"error\":\"Malformed encoding\"}", to: fd)
+            return
+        }
+
+        let lines = requestString.components(separatedBy: "\r\n")
         guard let firstLine = lines.first else {
-            return ("400 Bad Request", "{\"error\":\"Empty request\"}")
+            sendResponse(status: "400 Bad Request", body: "{\"error\":\"Empty request\"}", to: fd)
+            return
         }
 
         let parts = firstLine.components(separatedBy: " ")
         guard parts.count >= 2 else {
-            return ("400 Bad Request", "{\"error\":\"Malformed request line\"}")
+            sendResponse(status: "400 Bad Request", body: "{\"error\":\"Malformed request line\"}", to: fd)
+            return
         }
 
         let method = parts[0].uppercased()
         let path = parts[1]
 
-        // CORS Preflight
+        // 1. CORS Preflight
         if method == "OPTIONS" {
-            return ("200 OK", "")
+            sendResponse(status: "200 OK", body: "", to: fd)
+            return
         }
 
-        // Health check endpoint
-        if (method == "GET" && (path == "/health" || path == "/ping" || path == "/")) {
-            let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.6"
-            return ("200 OK", "{\"status\":\"ok\",\"app\":\"IDMac\",\"version\":\"\(version)\"}")
+        // 2. Health & Heartbeat
+        if method == "GET" && (path == "/health" || path == "/ping" || path == "/") {
+            let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.9"
+            let body = "{\"status\":\"ok\",\"app\":\"IDMac\",\"version\":\"\(version)\"}"
+            sendResponse(status: "200 OK", body: body, to: fd)
+            return
         }
 
-        // Add download endpoint
+        // 3. Add Download Endpoint
         if method == "POST" && (path == "/add" || path == "/download") {
-            // Find body separated by double CRLF
-            if let bodyRange = request.range(of: "\r\n\r\n") {
-                let bodyString = String(request[bodyRange.upperBound...])
+            if let bodyRange = requestString.range(of: "\r\n\r\n") {
+                let bodyString = String(requestString[bodyRange.upperBound...])
                 if let bodyData = bodyString.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: bodyData) as? [String: Any],
                    let urlString = json["url"] as? String, !urlString.isEmpty {
 
+                    let filename = json["filename"] as? String
                     Task { @MainActor in
-                        self.handleIncomingDownload(urlString: urlString, filename: json["filename"] as? String)
+                        self.handleIncomingDownload(urlString: urlString, filename: filename)
                     }
 
-                    return ("200 OK", "{\"success\":true,\"message\":\"Download added to IDMac\"}")
+                    sendResponse(status: "200 OK", body: "{\"success\":true,\"message\":\"Download added to IDMac\"}", to: fd)
+                    return
                 }
             }
-            return ("400 Bad Request", "{\"error\":\"Missing or invalid 'url' in JSON body\"}")
+            sendResponse(status: "400 Bad Request", body: "{\"error\":\"Missing or invalid 'url' in JSON body\"}", to: fd)
+            return
         }
 
-        return ("404 Not Found", "{\"error\":\"Unknown endpoint\"}")
+        sendResponse(status: "404 Not Found", body: "{\"error\":\"Unknown endpoint\"}", to: fd)
     }
 
     private func handleIncomingDownload(urlString: String, filename: String?) {
         guard let context = DownloadCoordinator.shared.modelContext else {
-            print("Cannot add download from browser: ModelContext is nil")
+            print("[LocalServer] Cannot add download from browser: ModelContext is nil")
             return
         }
 
@@ -141,28 +183,25 @@ public final class LocalServer: ObservableObject {
                 startImmediately: true
             )
 
-            // Bring IDMac to front if configured
             MenuBarManager.shared.showMainWindow()
         }
     }
 
-    private func sendResponse(_ response: (status: String, body: String), on connection: NWConnection) {
-        let bodyData = response.body.data(using: .utf8) ?? Data()
+    nonisolated private func sendResponse(status: String, body: String, to fd: Int32) {
+        let bodyBytes = body.utf8
         let headers = [
-            "HTTP/1.1 \(response.status)",
+            "HTTP/1.1 \(status)",
             "Content-Type: application/json; charset=utf-8",
             "Access-Control-Allow-Origin: *",
             "Access-Control-Allow-Methods: GET, POST, OPTIONS",
             "Access-Control-Allow-Headers: Content-Type, Authorization",
-            "Content-Length: \(bodyData.count)",
+            "Content-Length: \(bodyBytes.count)",
             "Connection: close"
         ].joined(separator: "\r\n") + "\r\n\r\n"
 
-        var responseData = headers.data(using: .utf8) ?? Data()
-        responseData.append(bodyData)
-
-        connection.send(content: responseData, completion: .contentProcessed { _ in
-            connection.cancel()
-        })
+        let fullResponse = headers + body
+        _ = fullResponse.withCString { ptr in
+            write(fd, ptr, strlen(ptr))
+        }
     }
 }

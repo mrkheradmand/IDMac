@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.0.9 (build 10) — 2026-10-23
+
+### Added
+- **Listener Status & Error Diagnostics (`SettingsView.swift`)**:
+  - Added visual error diagnostics badge displaying specific socket error details if the local server fails to bind.
+  - Added "Restart" action button alongside the active status badge in Settings -> Browsers.
+  - Automatically verifies and activates the local listener when opening the Browsers settings tab (`.onAppear`).
+
+### Modified
+- **POSIX BSD Loopback Socket Engine (`LocalServer.swift`)**:
+  - Replaced `Network.framework` (`NWListener`) with a rock-solid, entitlement-free POSIX BSD loopback socket (`AF_INET`, `SOCK_STREAM`, `SO_REUSEADDR`, `bind("127.0.0.1", 23485)`).
+  - Fixed an issue where clicking "Start Listener" did nothing due to `NWListener` throwing `POSIXErrorCode(rawValue: 22): Invalid argument` in ad-hoc binaries on macOS Sonoma/Sequoia.
+  - Added clean socket cleanup and restart capability without deadlocking `isRunning` state.
+- **Companion Extension Version Synchronization**:
+  - Bumped Firefox extension manifest and popup to v1.0.9, synchronized with app release bundle.
+- Bumped application bundle version to 1.0.9 (build 10).
+
+### Removed
+- Eliminated silent `NWListener` initialization failures and port-binding deadlocks in `LocalServer`.
+
+---
+
 ## 1.0.8 (build 9) — 2026-10-23
 
 ### Added

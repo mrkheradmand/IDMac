@@ -427,29 +427,48 @@ private struct BrowsersSettingsTab: View {
             }
 
             Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Local Bridge Server")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Accepts incoming download tasks from authorized browser extensions.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Local Bridge Server")
+                                .font(.system(size: 13, weight: .medium))
+                            Text("Accepts incoming download tasks from authorized browser extensions.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        if localServer.isRunning {
+                            HStack(spacing: 8) {
+                                HStack(spacing: 6) {
+                                    Circle().fill(Color.green).frame(width: 8, height: 8)
+                                    Text("Active on 127.0.0.1:\(localServer.port)")
+                                        .font(.system(size: 11, design: .monospaced))
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Button("Restart") {
+                                    localServer.start()
+                                }
+                                .controlSize(.small)
+                            }
+                        } else {
+                            Button("Start Listener") {
+                                localServer.start()
+                            }
+                            .controlSize(.small)
+                        }
                     }
 
-                    Spacer()
-
-                    if localServer.isRunning {
+                    if let err = localServer.lastErrorMessage, !localServer.isRunning {
                         HStack(spacing: 6) {
-                            Circle().fill(Color.green).frame(width: 8, height: 8)
-                            Text("Active on 127.0.0.1:\(localServer.port)")
-                                .font(.system(size: 11, design: .monospaced))
-                                .foregroundColor(.secondary)
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text(err)
+                                .font(.system(size: 11))
+                                .foregroundColor(.red)
                         }
-                    } else {
-                        Button("Start Listener") {
-                            localServer.start()
-                        }
-                        .controlSize(.small)
                     }
                 }
             } header: {
@@ -458,6 +477,11 @@ private struct BrowsersSettingsTab: View {
         }
         .formStyle(.grouped)
         .padding(12)
+        .onAppear {
+            if !localServer.isRunning {
+                localServer.start()
+            }
+        }
         .sheet(isPresented: $browserManager.showInstallGuide) {
             FirefoxInstallGuideSheet()
         }
