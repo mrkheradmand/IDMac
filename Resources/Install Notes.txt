@@ -1,0 +1,28 @@
+================================================================================
+IDMac - Installation Notes
+================================================================================
+
+1. INSTALLATION:
+   Drag "IDMac.app" into the "Applications" shortcut icon inside this disk image.
+
+2. FIRST LAUNCH (MACOS GATEKEEPER):
+   Because IDMac is an open-source, ad-hoc signed application, macOS Gatekeeper
+   may display a security prompt on the first launch.
+
+   To open the app:
+   - Method A (Recommended):
+     In Finder, go to Applications, right-click (or Control-click) "IDMac.app"
+     and choose "Open", then click "Open" in the dialog.
+
+   - Method B:
+     Open System Settings -> Privacy & Security, scroll down to the Security
+     section, and click "Open Anyway" next to IDMac.
+
+   - Method C (Terminal):
+     Run the following command in Terminal after moving the app to Applications:
+     xattr -dr com.apple.quarantine "/Applications/IDMac.app"
+
+3. SYSTEM REQUIREMENTS:
+   - macOS 14.0 (Sonoma) or later
+   - Apple Silicon (M1/M2/M3/M4) or Intel with Rosetta 2
+

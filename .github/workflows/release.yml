@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: macos-14
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate tag & prepare release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/release_metadata.py "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"
+
+      - name: Build application bundle
+        run: |
+          ./scripts/build_app.sh -c release
+
+      - name: Package & verify DMG installer
+        run: |
+          ./scripts/build_dmg.sh
+
+      - name: Upload verified assets & publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/publish_release.py "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"
+

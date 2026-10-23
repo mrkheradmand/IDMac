@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## 1.0.3 (build 4) — 2026-10-23
 
 ### Added
+- Created complete automated GitHub release infrastructure:
+  - `scripts/build_dmg.sh`: Native macOS APFS/UDZO disk image builder with `/Applications` symlink and SHA256 checksum verification.
+  - `scripts/release_metadata.py`: Tri-source validator (`Info.plist`, `versions.md`, Git tag) and smart release note aggregator.
+  - `scripts/publish_release.py`: Two-phase atomic GitHub release publisher (draft creation $\rightarrow$ remote digest verification $\rightarrow$ public release).
+  - `.github/workflows/release.yml`: Automated CI/CD release workflow triggered on `v*` tag pushes.
+  - `scripts/make_release.sh`: Local release helper for version bumping, building, tagging, and publishing.
+  - `Resources/Install Notes.txt`: User guide explaining Gatekeeper bypass on macOS.
 - Set default window dimensions to `1060 × 640` in `IDMacApp.swift` to ensure all 8 columns fit without clipping on initial launch.
 - Constrained sidebar column width (`min: 180, ideal: 200, max: 240`) in `MainSplitView.swift` to maximize available space for the main downloads table.
 - Added `.scrollIndicators(.never, axes: .horizontal)` on `DownloadTableView` to eliminate the horizontal scrollbar indicator.
@@ -16,10 +23,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Established `versions.md` as the persistent versioning log for tracking all additions, modifications, and removals across releases.
 
 ### Modified
+- Updated `.gitignore` to permanently ignore `.DS_Store`, `**/.DS_Store`, and `dist/`.
 - Rebalanced all 8 column widths in `DownloadTableView.swift` (File Name, Size, Status, Progress, Speed, Time Left, Resume, Date Added) to an aggregate ideal width of ~810 pt so all columns remain visible simultaneously.
 - Optically scaled the active squircle app icon from 824px to 876px (+6.3%) to eliminate perceived shrinkage in the macOS Dock alongside high-luminance system icons.
 
 ### Removed
+- Untracked all `.DS_Store` files from Git tracking, cache, and monitoring.
 - Removed the unwanted horizontal scrollbar thumb and corner junction artifact that previously appeared in the bottom-right corner of the table on launch.
 
 ---
