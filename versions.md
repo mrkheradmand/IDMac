@@ -32,11 +32,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Configured `NSHumanReadableCopyright` in `Resources/Info.plist` and `scripts/build_app.sh`.
   - Added copyright notice in `AboutWindow.swift` view footer.
   - Added dedicated License & Copyright sections to both `README.md` and `developer_docs/README.md`.
+- **Seamless Toolbar Search Field (`NativeSearchField.swift`)**:
+  - Implemented custom `UnborderedSearchField` suppressing the macOS blue focus ring border.
+  - Added global click-to-unfocus monitor dismissing the search box whenever clicking anywhere else in the application.
 - **Dual-Tier Documentation Framework**:
   - Created user-facing non-technical manual in `README.md` focusing on features, installation, Gatekeeper guidance, and usage.
   - Created developer systems architecture guide in `developer_docs/README.md` covering Swift concurrency, POSIX I/O, SwiftData persistence, AppKit bridges, and build pipelines.
+  - Created practical step-by-step GitHub release guide in `developer_docs/HOW_TO_RELEASE.md`.
 
 ### Modified
+- Replaced standard `.searchable` with `NativeSearchField` in the window toolbar for borderless focus styling and click-outside dismissal.
 - Reordered navigation sidebar layout: positioned the **Status** section at the top and the **Categories** section below it.
 - Added **All Downloads** item to the top of the **Status** section as the primary filter.
 - Removed **All Downloads** from the **Categories** section, leaving pure file-type groupings (Compressed, Documents, Music, Programs, Video, Other).
@@ -46,6 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Initialized `UpdateManager.shared.startBackgroundCheck()` inside `AppDelegate.applicationDidFinishLaunching`.
 - Enhanced `scripts/build_app.sh` to dynamically extract application version (`CFBundleShortVersionString`) and build number (`CFBundleVersion`) from `Resources/Info.plist`.
 - Bumped application bundle version to 1.0.4 (build 5).
+- Relocated and consolidated `Architectural-Comparison.md` permanently into `developer_docs/Architectural-Comparison.md`.
 
 ### Removed
 - Removed legacy unorganized single-tab Settings form.

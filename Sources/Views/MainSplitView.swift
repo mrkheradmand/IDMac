@@ -140,8 +140,12 @@ public struct MainSplitView: View {
                 .disabled(selectedItem == nil)
                 .help("Remove download from list")
             }
+
+            ToolbarItem(placement: .primaryAction) {
+                NativeSearchField(text: $searchText, prompt: "Search files or URLs...")
+                    .frame(width: 220)
+            }
         }
-        .searchable(text: $searchText, prompt: "Search files or URLs...")
         .sheet(isPresented: $isAddSheetPresented) {
             AddDownloadSheet()
         }
