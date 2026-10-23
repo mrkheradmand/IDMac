@@ -166,6 +166,31 @@ public final class DownloadCoordinator {
         }
     }
 
+    public func pauseAllDownloads() {
+        guard let context = modelContext else { return }
+        let descriptor = FetchDescriptor<DownloadItem>()
+        if let items = try? context.fetch(descriptor) {
+            pauseAll(items: items, modelContext: context)
+        }
+    }
+
+    public func resumeAllDownloads() {
+        guard let context = modelContext else { return }
+        let descriptor = FetchDescriptor<DownloadItem>()
+        if let items = try? context.fetch(descriptor) {
+            resumeAll(items: items, modelContext: context)
+        }
+    }
+
+    public func getActiveDownloadStats() -> (count: Int, totalSpeed: Double) {
+        guard let context = modelContext else { return (0, 0.0) }
+        let descriptor = FetchDescriptor<DownloadItem>()
+        let items = (try? context.fetch(descriptor)) ?? []
+        let downloading = items.filter { $0.status == .downloading }
+        let totalSpeed = downloading.reduce(0.0) { $0 + $1.currentSpeed }
+        return (downloading.count, totalSpeed)
+    }
+
     private func handleProgress(update: SegmentProgressUpdate, for itemId: UUID) {
         guard let context = modelContext, let item = activeItem(id: itemId, in: context) else { return }
 

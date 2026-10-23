@@ -14,6 +14,8 @@ No Electron. No web wrappers. No bloat. Just pure, lightning-fast native macOS p
 * ⏸️ **Pause & Resume Anytime**: Never lose download progress again. Safely pause downloads, withstand sudden network disconnects, or resume interrupted downloads without redownloading finished data.
 * 📋 **Smart Clipboard Sensing**: When you copy any download URL in Safari, Chrome, or Firefox, IDMac automatically detects it and prepares the download for you.
 * 📊 **Live Thread Visualizer**: Watch your download happen in real time with our dynamic segment inspector displaying the live progress and byte chunks of every active stream.
+* 📌 **macOS Menu Bar Companion & Dock Hiding**: Keep track of download progress and speeds directly from your menu bar. Close the window to hide IDMac from your Dock while downloads continue uninterrupted in the background.
+* 🚀 **Launch at System Startup**: Seamlessly start IDMac in the background when logging into macOS so your download manager is always ready.
 * 🔄 **Automatic Updates**: IDMac keeps itself up to date with built-in background update checking and one-click upgrades directly from official GitHub releases.
 * 🎨 **Native Apple HIG Design**: Designed strictly according to Apple Human Interface Guidelines with full support for Light and Dark modes, custom Accent Colors, macOS notifications, and seamless keyboard shortcuts.
 * 🔋 **Ultra-Low Battery & Memory Usage**: Optimized specifically for Apple Silicon (M1/M2/M3/M4). IDMac uses a fraction of the RAM and CPU compared to cross-platform download utilities.
@@ -57,7 +59,7 @@ Download the latest disk image (`.dmg`) from our official GitHub Releases:
 
 ### Customizing Preferences (`⌘,`)
 Open **IDMac** → **Settings** (or press `⌘,`) to tailor the app to your setup:
-* **General**: Change your default Downloads folder, enable/disable completion chimes, clipboard monitoring, and native macOS notifications.
+* **General**: Change your default Downloads folder, configure launch at system startup, customize menu bar icon visibility and background dock hiding, toggle clipboard monitoring, completion chimes, and native macOS notifications.
 * **Acceleration**: Configure default connection streams (1 to 32 streams), maximum simultaneous downloads, and connection timeouts.
 * **Updates**: Enable automatic update checking on launch, set check frequency, or check for new releases on demand.
 * **Advanced**: Enable download speed caps, choose APFS file pre-allocation modes, and manage temporary cache files.

@@ -149,11 +149,20 @@ public struct MainSplitView: View {
                     .frame(width: 220)
             }
         }
-        .sheet(isPresented: $isAddSheetPresented) {
+        .sheet(isPresented: Binding(
+            get: { isAddSheetPresented || coordinator.isAddingDownloadSheetPresented },
+            set: { val in
+                isAddSheetPresented = val
+                coordinator.isAddingDownloadSheetPresented = val
+            }
+        )) {
             AddDownloadSheet()
         }
         .sheet(isPresented: $isSettingsSheetPresented) {
             SettingsView()
+        }
+        .onAppear {
+            coordinator.modelContext = modelContext
         }
     }
 }

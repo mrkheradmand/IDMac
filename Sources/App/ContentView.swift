@@ -10,6 +10,7 @@ public struct WindowAccessor: NSViewRepresentable {
             if let window = view.window {
                 window.tabbingMode = .disallowed
                 window.tabbingIdentifier = ""
+                MenuBarManager.shared.registerMainWindow(window)
             }
         }
         return view
@@ -20,6 +21,7 @@ public struct WindowAccessor: NSViewRepresentable {
             if let window = nsView.window {
                 window.tabbingMode = .disallowed
                 window.tabbingIdentifier = ""
+                MenuBarManager.shared.registerMainWindow(window)
             }
         }
     }

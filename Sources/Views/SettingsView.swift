@@ -33,17 +33,21 @@ public struct SettingsView: View {
                 }
                 .tag(3)
         }
-        .frame(width: 540, height: 470)
+        .frame(width: 560, height: 530)
     }
 }
 
 // MARK: - 1. General Settings Tab
 private struct GeneralSettingsTab: View {
+    @ObservedObject private var launchManager = LaunchAtLoginManager.shared
     @AppStorage("defaultDownloadDirectory") private var defaultDownloadDirectory: String = ""
     @AppStorage("autoCheckClipboard") private var autoCheckClipboard: Bool = true
     @AppStorage("playCompletionSound") private var playCompletionSound: Bool = true
     @AppStorage("showNotifications") private var showNotifications: Bool = true
     @AppStorage("preventSystemSleep") private var preventSystemSleep: Bool = true
+    @AppStorage("showMenuBarIcon") private var showMenuBarIcon: Bool = true
+    @AppStorage("keepRunningInMenuBar") private var keepRunningInMenuBar: Bool = true
+    @AppStorage("hideDockIconWhenClosed") private var hideDockIconWhenClosed: Bool = true
 
     private var resolvedDirectoryDisplay: String {
         if defaultDownloadDirectory.isEmpty {
@@ -125,6 +129,60 @@ private struct GeneralSettingsTab: View {
                 }
             } header: {
                 Text("Automation & Notifications")
+            }
+
+            Section {
+                Toggle(isOn: Binding(
+                    get: { launchManager.isEnabled },
+                    set: { launchManager.setEnabled($0) }
+                )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Launch IDMac at system startup")
+                            .font(.system(size: 13))
+                        Text("Automatically start IDMac in the background when logging into macOS.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Toggle(isOn: $showMenuBarIcon) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Show status icon in menu bar")
+                            .font(.system(size: 13))
+                        Text("Displays quick download status and controls in the macOS menu bar.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .onChange(of: showMenuBarIcon) { _, _ in
+                    MenuBarManager.shared.setupStatusBarItem()
+                }
+
+                if showMenuBarIcon {
+                    Toggle(isOn: $keepRunningInMenuBar) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Keep IDMac running in menu bar when window is closed")
+                                .font(.system(size: 13))
+                            Text("Closing the main window leaves IDMac running in the background.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    if keepRunningInMenuBar {
+                        Toggle(isOn: $hideDockIconWhenClosed) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Hide Dock icon when window is closed")
+                                    .font(.system(size: 13))
+                                Text("Removes IDMac from the Dock and Cmd+Tab switcher while window is closed.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("Menu Bar & System Startup")
             }
 
             Section {

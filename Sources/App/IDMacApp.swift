@@ -5,10 +5,16 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
+        UserDefaults.standard.register(defaults: [
+            "showMenuBarIcon": true,
+            "keepRunningInMenuBar": true,
+            "hideDockIconWhenClosed": true
+        ])
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
+        MenuBarManager.shared.setupStatusBarItem()
 
         // Listen for windows becoming key/main and permanently disallow tabbing
         NotificationCenter.default.addObserver(
@@ -82,6 +88,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.removeItem(rm)
         }
     }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag {
+            MenuBarManager.shared.showMainWindow()
+        }
+        return true
+    }
 }
 
 @main
@@ -138,12 +151,12 @@ struct IDMacApp: App {
 
             CommandMenu("Downloads") {
                 Button("Resume All") {
-                    // Triggered from coordinator
+                    DownloadCoordinator.shared.resumeAllDownloads()
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
 
                 Button("Stop All") {
-                    // Triggered from coordinator
+                    DownloadCoordinator.shared.pauseAllDownloads()
                 }
                 .keyboardShortcut("s", modifiers: [.command, .shift])
             }
