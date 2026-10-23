@@ -5,7 +5,7 @@ public struct MainSplitView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \DownloadItem.dateAdded, order: .reverse) private var allDownloads: [DownloadItem]
 
-    @State private var selectedFilter: SidebarFilter? = .category(.all)
+    @State private var selectedFilter: SidebarFilter? = .all
     @State private var selectedDownloadId: UUID?
     @State private var searchText = ""
     @State private var isAddSheetPresented = false
@@ -20,12 +20,12 @@ public struct MainSplitView: View {
 
         if let filter = selectedFilter {
             switch filter {
-            case .category(let cat):
-                if cat != .all {
-                    items = items.filter { $0.category == cat }
-                }
+            case .all:
+                break
             case .status(let stat):
                 items = items.filter { $0.status == stat }
+            case .category(let cat):
+                items = items.filter { $0.category == cat }
             }
         }
 
@@ -37,6 +37,20 @@ public struct MainSplitView: View {
         }
 
         return items
+    }
+
+    private var emptyStateTitle: String {
+        if let filter = selectedFilter {
+            switch filter {
+            case .all:
+                return "No Downloads"
+            case .status(let stat):
+                return "No \(stat.rawValue) Downloads"
+            case .category(let cat):
+                return "No \(cat.rawValue) Downloads"
+            }
+        }
+        return "No Downloads"
     }
 
     private var selectedItem: DownloadItem? {
@@ -56,7 +70,7 @@ public struct MainSplitView: View {
                         Image(systemName: "tray")
                             .font(.system(size: 44))
                             .foregroundColor(.secondary)
-                        Text("No Downloads in this Category")
+                        Text(emptyStateTitle)
                             .font(.headline)
                             .foregroundColor(.secondary)
                         Button("Add URL to Download") {

@@ -49,6 +49,10 @@ if [[ -f "${ROOT_DIR}/Resources/Install Notes.txt" ]]; then
     cp "${ROOT_DIR}/Resources/Install Notes.txt" "${STAGE}/content/Install Notes.txt"
 fi
 
+if [[ -f "${ROOT_DIR}/LICENSE" ]]; then
+    cp "${ROOT_DIR}/LICENSE" "${STAGE}/content/LICENSE.txt"
+fi
+
 # Create compressed disk image
 echo "==> Creating disk image with hdiutil (UDZO)..."
 hdiutil create -volname "IDMac ${VERSION}" \

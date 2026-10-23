@@ -231,6 +231,10 @@ public struct AboutView: View {
                 }
                 .font(.system(size: 11))
 
+                Text("Copyright © 2026 J Kheradmand. All rights reserved.")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+
                 Text("Built natively with Swift, SwiftUI, and SwiftData for macOS.")
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)

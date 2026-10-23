@@ -2,27 +2,31 @@ import SwiftUI
 import SwiftData
 
 public enum SidebarFilter: Hashable, Identifiable {
-    case category(DownloadCategory)
+    case all
     case status(DownloadStatus)
+    case category(DownloadCategory)
 
     public var id: String {
         switch self {
-        case .category(let cat): return "cat_\(cat.rawValue)"
+        case .all: return "status_all"
         case .status(let stat): return "stat_\(stat.rawValue)"
+        case .category(let cat): return "cat_\(cat.rawValue)"
         }
     }
 
     public var title: String {
         switch self {
-        case .category(let cat): return cat.rawValue
+        case .all: return "All Downloads"
         case .status(let stat): return stat.rawValue
+        case .category(let cat): return cat.rawValue
         }
     }
 
     public var iconName: String {
         switch self {
-        case .category(let cat): return cat.iconName
+        case .all: return "tray.full.fill"
         case .status(let stat): return stat.iconName
+        case .category(let cat): return cat.iconName
         }
     }
 }
@@ -37,21 +41,18 @@ public struct SidebarView: View {
 
     public var body: some View {
         List(selection: $selection) {
-            Section("Categories") {
-                ForEach([DownloadCategory.all, .compressed, .documents, .music, .programs, .video, .other], id: \.self) { cat in
-                    NavigationLink(value: SidebarFilter.category(cat)) {
-                        HStack {
-                            Label(cat.rawValue, systemImage: cat.iconName)
-                            Spacer()
-                            Text("\(count(forCategory: cat))")
-                                .font(.system(size: 11, weight: .regular))
-                                .foregroundColor(.secondary)
-                        }
+            // Status on top with "All Downloads" first
+            Section("Status") {
+                NavigationLink(value: SidebarFilter.all) {
+                    HStack {
+                        Label("All Downloads", systemImage: "tray.full.fill")
+                        Spacer()
+                        Text("\(allDownloads.count)")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(.secondary)
                     }
                 }
-            }
 
-            Section("Status") {
                 ForEach([DownloadStatus.downloading, .completed, .paused, .queued, .failed], id: \.self) { stat in
                     NavigationLink(value: SidebarFilter.status(stat)) {
                         HStack {
@@ -64,16 +65,28 @@ public struct SidebarView: View {
                     }
                 }
             }
+
+            // Categories below Status, without "All Downloads"
+            Section("Categories") {
+                ForEach([DownloadCategory.compressed, .documents, .music, .programs, .video, .other], id: \.self) { cat in
+                    NavigationLink(value: SidebarFilter.category(cat)) {
+                        HStack {
+                            Label(cat.rawValue, systemImage: cat.iconName)
+                            Spacer()
+                            Text("\(count(forCategory: cat))")
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
         }
         .listStyle(.sidebar)
         .frame(minWidth: 190)
     }
 
     private func count(forCategory cat: DownloadCategory) -> Int {
-        if cat == .all {
-            return allDownloads.count
-        }
-        return allDownloads.filter { $0.category == cat }.count
+        allDownloads.filter { $0.category == cat }.count
     }
 
     private func count(forStatus stat: DownloadStatus) -> Int {

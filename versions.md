@@ -24,13 +24,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Acceleration**: Default connection streams picker (1–32 streams), max active downloads picker, socket timeout picker, retry attempts picker, and stream buffer size picker.
   - **Updates**: Dedicated software update card with live check trigger, background check toggle, check frequency picker, pre-release/beta toggle, and SHA256 security guarantee.
   - **Advanced**: File pre-allocation mode picker (Sparse vs full `fcntl(F_PREALLOCATE)`), aggregate bandwidth throttling / speed limit controls, Finder temporary folder reveal, and factory reset action.
-- **Rule Persistence (`.agents/rules/macos-ui-rules.md`)**:
+- **Rule Persistence (`.agents/rules/macos-ui-rules.md`, `.agents/rules/documentation-rules.md`)**:
   - Documented permanent Apple HIG rules for macOS Settings, About panels, modal sheets, and window tabbing.
+  - Established permanent rule requiring dual-tier documentation maintenance (`/README.md` for users, `/developer_docs/README.md` for developers) on every code change.
+- **Licensing & Copyright**:
+  - Added official MIT License file (`LICENSE`) with copyright notice `Copyright (c) 2026 J Kheradmand`.
+  - Configured `NSHumanReadableCopyright` in `Resources/Info.plist` and `scripts/build_app.sh`.
+  - Added copyright notice in `AboutWindow.swift` view footer.
+  - Added dedicated License & Copyright sections to both `README.md` and `developer_docs/README.md`.
+- **Dual-Tier Documentation Framework**:
+  - Created user-facing non-technical manual in `README.md` focusing on features, installation, Gatekeeper guidance, and usage.
+  - Created developer systems architecture guide in `developer_docs/README.md` covering Swift concurrency, POSIX I/O, SwiftData persistence, AppKit bridges, and build pipelines.
 
 ### Modified
+- Reordered navigation sidebar layout: positioned the **Status** section at the top and the **Categories** section below it.
+- Added **All Downloads** item to the top of the **Status** section as the primary filter.
+- Removed **All Downloads** from the **Categories** section, leaving pure file-type groupings (Compressed, Documents, Music, Programs, Video, Other).
+- Added contextual dynamic empty-state messaging in `MainSplitView.swift` based on the active status or category filter.
 - Connected custom `AboutWindowController` to the application menu (`CommandGroup(replacing: .appInfo)`), replacing the standard generic alert.
 - Updated `AddDownloadSheet.swift` to automatically pre-populate the user's custom default download folder and connection stream count from settings.
 - Initialized `UpdateManager.shared.startBackgroundCheck()` inside `AppDelegate.applicationDidFinishLaunching`.
+- Enhanced `scripts/build_app.sh` to dynamically extract application version (`CFBundleShortVersionString`) and build number (`CFBundleVersion`) from `Resources/Info.plist`.
 - Bumped application bundle version to 1.0.4 (build 5).
 
 ### Removed

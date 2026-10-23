@@ -130,7 +130,16 @@ echo -e "${GREEN}Compiled executable:${NC} ${MACOS_DIR}/IDMac"
 
 # Write Info.plist
 echo -e "${BLUE}Generating Info.plist & PkgInfo...${NC}"
-cat << 'EOF' > "${CONTENTS_DIR}/Info.plist"
+
+if [[ -f "${ROOT_DIR}/Resources/Info.plist" ]]; then
+    APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${ROOT_DIR}/Resources/Info.plist" 2>/dev/null || echo "1.0.4")"
+    APP_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "${ROOT_DIR}/Resources/Info.plist" 2>/dev/null || echo "5")"
+else
+    APP_VERSION="1.0.4"
+    APP_BUILD="5"
+fi
+
+cat << EOF > "${CONTENTS_DIR}/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -150,9 +159,9 @@ cat << 'EOF' > "${CONTENTS_DIR}/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.3</string>
+    <string>${APP_VERSION}</string>
     <key>CFBundleVersion</key>
-    <string>4</string>
+    <string>${APP_BUILD}</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>NSPrincipalClass</key>
@@ -164,6 +173,8 @@ cat << 'EOF' > "${CONTENTS_DIR}/Info.plist"
     </dict>
     <key>NSDownloadsFolderUsageDescription</key>
     <string>IDMac needs access to the Downloads folder to save your downloaded files.</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2026 J Kheradmand. All rights reserved.</string>
 </dict>
 </plist>
 EOF
