@@ -23,10 +23,14 @@ public final class MenuBarManager: NSObject, NSMenuDelegate, NSWindowDelegate {
                         button.image = image
                         button.imagePosition = .imageOnly
                     }
+                    button.target = self
+                    button.action = #selector(statusBarButtonClicked(_:))
+                    button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+
+                    let contextMenu = NSMenu()
+                    contextMenu.delegate = self
+                    button.menu = contextMenu
                 }
-                let menu = NSMenu()
-                menu.delegate = self
-                item.menu = menu
                 statusItem = item
             }
         } else {
@@ -36,6 +40,23 @@ public final class MenuBarManager: NSObject, NSMenuDelegate, NSWindowDelegate {
             }
             // Ensure Dock icon is visible if menu bar icon is removed
             NSApp.setActivationPolicy(.regular)
+        }
+    }
+
+    @objc private func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else {
+            showMainWindow()
+            return
+        }
+
+        if event.type == .rightMouseUp || event.modifierFlags.contains(.control) {
+            if let menu = sender.menu {
+                menu.removeAllItems()
+                populateMenu(menu)
+                menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height + 4), in: sender)
+            }
+        } else {
+            showMainWindow()
         }
     }
 
@@ -130,6 +151,11 @@ public final class MenuBarManager: NSObject, NSMenuDelegate, NSWindowDelegate {
             window.orderFrontRegardless()
         } else {
             if let window = NSApp.windows.first(where: { !($0 is NSPanel) && $0.canBecomeKey }) {
+                mainWindow = window
+                window.delegate = self
+                window.makeKeyAndOrderFront(nil)
+                window.orderFrontRegardless()
+            } else if let window = NSApp.windows.first(where: { !($0 is NSPanel) }) {
                 mainWindow = window
                 window.delegate = self
                 window.makeKeyAndOrderFront(nil)

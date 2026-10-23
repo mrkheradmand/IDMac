@@ -14,11 +14,11 @@
 		</data>
 		<key>Resources/extensions/firefox/background.js</key>
 		<data>
-		TrMK3rhtgbRuqjaAce8CtR3TZKA=
+		bhmGTsRiWtfKt60ygwxXorCLjxI=
 		</data>
 		<key>Resources/extensions/firefox/content.js</key>
 		<data>
-		9BQH4sWbDnRlxX7gUWA6PNGsCzc=
+		x3ZJMRW86Gu3EvpKKX9L4Kh28DA=
 		</data>
 		<key>Resources/extensions/firefox/icons/icon-128.png</key>
 		<data>
@@ -38,19 +38,19 @@
 		</data>
 		<key>Resources/extensions/firefox/manifest.json</key>
 		<data>
-		+xMKG3hV7enFg5rTOQKvgwR88iA=
+		Ts3/i+I9PhS+6zJgTTj5z4kaaTE=
 		</data>
 		<key>Resources/extensions/firefox/popup.html</key>
 		<data>
-		1JVtkt2MOdv8jspCuPX8Tj7Y2jE=
+		cp3LGz0IT11N/SBGokBJvqwjBw0=
 		</data>
 		<key>Resources/extensions/firefox/popup.js</key>
 		<data>
-		lpocjQ0u2uOEWBY7khqgK2SBv+E=
+		Jvu2Zx6jwh+GT/cPrVJwNwA1oZg=
 		</data>
 		<key>Resources/extensions/idmac-firefox.xpi</key>
 		<data>
-		Zdweq5sOIAgtGDtG0eIkFgHxEqY=
+		q9x1moFXjzKzYltiOWKy1KfCQNY=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -73,14 +73,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			N+IMlAKTjGnkPrGXA1uuXncWpby4JirtelLOkYeQB4I=
+			XrBkpLcZda5wnJU2VjonZ8ohoGtZAPikLKWyKAKGYgI=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/content.js</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			MWH9THiPWT5T5xh7Mfr1xV6m/4As7iiAgyEGGFy7LLo=
+			dsb7eaEdytk0VeQTZrYfOYpaX/Md4V1X766dm5ssvl8=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/icons/icon-128.png</key>
@@ -115,28 +115,28 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			KxKQwoySpix4MIBqALKOrMBOtEpKnckMjzl/OjY/6Ww=
+			wx/kEp35vybc06q4z0z0XfVcBaeJFGHMISvfpJDy10E=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/popup.html</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			JFMNqRVTcM57RAXMa1RNbeXYsmIaFA4drBdDajI0Vz4=
+			f0teHFtHkYou/MkwciKjz4Fnd9e516iAXSZrJtBfdcI=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/popup.js</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			TFrhHcpo1LvMQWLs/czmuQPQNo8KHB0wk/33ev3Ailk=
+			TohR1X3nxvZzp6o2lKksdrHKJd36Pv58g1znuBaxjY8=
 			</data>
 		</dict>
 		<key>Resources/extensions/idmac-firefox.xpi</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			S4eyE/2ZG/rVd/ichS/DuBy4K7Ko/dUH7vadNxsuTxg=
+			gS7nG51CMZgJO7xpsATOw7asSOE5Wsaw+wTeVdjQ1Vw=
 			</data>
 		</dict>
 	</dict>

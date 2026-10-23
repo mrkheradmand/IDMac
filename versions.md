@@ -10,10 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - **macOS Menu Bar Status Item (`MenuBarManager.swift`)**:
-  - Implemented persistent system status item (`NSStatusItem`) with template icon (`arrow.down.circle`) adapting dynamically to macOS Light and Dark appearance.
-  - Real-time download progress summary header directly inside the menu bar dropdown ("IDMac: Downloading (X) • Y MB/s" or "IDMac: Idle").
-  - Quick action controls: "Show IDMac", "Add Download URL…", "Resume All", "Pause All", "Settings…", "Check for Updates…", and "Quit IDMac".
-  - Dynamic delegate menu population updating download statistics each time the menu bar dropdown is displayed.
+  - Direct 1-Click Launch: Clicking the menu bar icon instantly opens and focuses IDMac (restoring the application from background, revealing the Dock icon, and ordering the main window frontmost).
+  - Contextual Actions: Right-clicking (or Control-clicking) the menu bar icon displays the quick action dropdown menu with real-time download status, "Add Download URL…", "Resume All", "Pause All", "Settings…", "Check for Updates…", and "Quit IDMac".
+  - Template icon (`arrow.down.circle`) adapting dynamically to macOS Light and Dark appearance.
 - **Window Close Interception & Dock Hiding**:
   - Seamless background persistence: Closing the main window (via close button or Cmd+W) hides the window while IDMac continues running in the menu bar.
   - Dynamic Dock icon suppression: Option to switch application activation policy to `.accessory` when the main window is closed, completely removing IDMac from the macOS Dock and Cmd+Tab application switcher.
