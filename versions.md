@@ -6,6 +6,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.1.0 (build 13) — 2026-10-23
+
+### Added
+- **Multi-Selection in Download List (`DownloadTableView.swift`, `MainSplitView.swift`)**:
+  - Implemented multi-selection (`Set<UUID>`) in the main table, allowing users to select multiple downloads simultaneously using standard macOS shortcuts (Shift+Click for range selection, Cmd+Click for discrete row toggling, and Cmd+A for selecting all).
+- **Keyboard Delete Key Removal (`DownloadTableView.swift`, `MainSplitView.swift`)**:
+  - Enabled deleting selected download item(s) from the list by pressing the `Delete` (Backspace) or `Forward Delete` key on the keyboard.
+  - The keyboard Delete command strictly removes items from the IDMac database and list without deleting the downloaded files from the disk folder.
+- **Batch Context Menu Actions (`DownloadTableView.swift`, `DownloadCoordinator.swift`)**:
+  - Right-click context menu dynamically adapts to multi-row selections:
+    - **Delete File and Remove**: Permanently deletes all selected files from disk storage and removes them from the list.
+    - **Remove from List**: Removes all selected downloads from the list while preserving files on disk.
+    - **Pause / Resume**: Batches pause or resume commands across all selected items matching eligible states.
+    - **Show in Finder**: Simultaneously reveals and highlights all selected completed files in macOS Finder.
+    - **Copy Download Links**: Copies URLs of all selected downloads to the clipboard, separated by newlines.
+    - **Redownload**: Reinitializes and requeues all selected downloads in batch.
+- **Auto-Start Download Preference (`SettingsView.swift`, `DownloadCoordinator.swift`)**:
+  - Added "Automatically start downloads when added" setting in General Settings (defaults to enabled).
+  - When disabled, new links added via browser extension, custom URL scheme, or manual input are safely queued as "Queued" without starting immediately.
+- **Active Download Queue Manager (`DownloadCoordinator.swift`)**:
+  - Implemented automatic queue management enforcing the "Maximum active downloads" limit (e.g. 3 concurrent downloads).
+  - New downloads exceeding the concurrency limit are placed into the queue.
+  - Automatically activates the next queued download in FIFO order whenever an active download completes, fails, is paused, or is deleted.
+- **Bulletproof Native Cancellation in Firefox Extension (`background.js`)**:
+  - Eliminated network roundtrip latency by utilizing cached connectivity state during download creation.
+  - Added immediate synchronous pause and cancel execution upon `browser.downloads.onCreated` and state transition enforcement via `browser.downloads.onChanged`.
+  - Added 50ms and 150ms state-catch retries to prevent Firefox from continuing to download in parallel while duplicate resolution is pending in IDMac.
+
+### Modified
+- **Concurrency Limit Dynamic Adjustment (`SettingsView.swift`)**:
+  - Changing the maximum active downloads slider or picker now dynamically triggers `processQueue()` to immediately fill newly available slots.
+- **Batch Deletion Engine (`DownloadCoordinator.swift`)**:
+  - Added `delete(items:deleteFile:modelContext:)` to efficiently execute batch file system cleanup and SwiftData deletions in a single transaction.
+- Bumped application bundle version to 1.1.0 (build 13).
+
+### Removed
+- Eliminated browser download leakage where Firefox continued to download files in parallel during duplicate prompt presentation.
+
+---
+
 ## 1.0.11 (build 12) — 2026-10-23
 
 ### Added

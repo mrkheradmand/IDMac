@@ -32,7 +32,7 @@ public final class DownloadCoordinator {
         destinationFolder: URL,
         connectionCount: Int = 8,
         modelContext: ModelContext,
-        startImmediately: Bool = true
+        startImmediately: Bool? = nil
     ) async -> Bool {
         self.modelContext = modelContext
         guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
@@ -106,8 +106,14 @@ public final class DownloadCoordinator {
         modelContext.insert(item)
         try? modelContext.save()
 
-        if startImmediately {
+        let autoStartSetting = UserDefaults.standard.object(forKey: "autoStartDownload") as? Bool ?? true
+        let shouldStart = startImmediately ?? autoStartSetting
+
+        if shouldStart {
             start(item: item, modelContext: modelContext)
+        } else {
+            item.status = .queued
+            try? modelContext.save()
         }
 
         return true
@@ -265,6 +271,24 @@ public final class DownloadCoordinator {
     public func start(item: DownloadItem, modelContext: ModelContext) {
         self.modelContext = modelContext
         let itemId = item.id
+        guard activeEngines[itemId] == nil, let _ = URL(string: item.urlString) else { return }
+
+        let maxConcurrent = UserDefaults.standard.integer(forKey: "maxConcurrentDownloads") > 0
+            ? UserDefaults.standard.integer(forKey: "maxConcurrentDownloads")
+            : 3
+
+        if activeEngines.count >= maxConcurrent {
+            item.status = .queued
+            try? modelContext.save()
+            return
+        }
+
+        startDirect(item: item, modelContext: modelContext)
+    }
+
+    private func startDirect(item: DownloadItem, modelContext: ModelContext) {
+        self.modelContext = modelContext
+        let itemId = item.id
         guard activeEngines[itemId] == nil, let url = URL(string: item.urlString) else { return }
 
         let destURL = URL(fileURLWithPath: item.destinationPath)
@@ -341,6 +365,27 @@ public final class DownloadCoordinator {
         activeTasks[itemId] = task
     }
 
+    public func processQueue() {
+        guard let context = modelContext else { return }
+        let maxConcurrent = UserDefaults.standard.integer(forKey: "maxConcurrentDownloads") > 0
+            ? UserDefaults.standard.integer(forKey: "maxConcurrentDownloads")
+            : 3
+
+        let currentActive = activeEngines.count
+        let availableSlots = maxConcurrent - currentActive
+        guard availableSlots > 0 else { return }
+
+        let descriptor = FetchDescriptor<DownloadItem>(
+            sortBy: [SortDescriptor(\.dateAdded, order: .forward)]
+        )
+        guard let allItems = try? context.fetch(descriptor) else { return }
+        let queuedItems = allItems.filter { $0.status == .queued && activeEngines[$0.id] == nil }
+
+        for item in queuedItems.prefix(availableSlots) {
+            startDirect(item: item, modelContext: context)
+        }
+    }
+
     public func pause(item: DownloadItem, modelContext: ModelContext) {
         self.modelContext = modelContext
         let itemId = item.id
@@ -357,6 +402,7 @@ public final class DownloadCoordinator {
         item.status = .paused
         item.currentSpeed = 0
         try? modelContext.save()
+        processQueue()
     }
 
     public func resume(item: DownloadItem, modelContext: ModelContext) {
@@ -364,16 +410,25 @@ public final class DownloadCoordinator {
     }
 
     public func delete(item: DownloadItem, deleteFile: Bool, modelContext: ModelContext) {
-        pause(item: item, modelContext: modelContext)
-        if deleteFile {
-            let path = item.destinationPath
-            try? FileManager.default.removeItem(atPath: path)
+        delete(items: [item], deleteFile: deleteFile, modelContext: modelContext)
+    }
+
+    public func delete(items: [DownloadItem], deleteFile: Bool, modelContext: ModelContext) {
+        guard !items.isEmpty else { return }
+        self.modelContext = modelContext
+        for item in items {
+            pause(item: item, modelContext: modelContext)
+            if deleteFile {
+                let path = item.destinationPath
+                try? FileManager.default.removeItem(atPath: path)
+            }
+            modelContext.delete(item)
+            if selectedDownload?.id == item.id {
+                selectedDownload = nil
+            }
         }
-        modelContext.delete(item)
         try? modelContext.save()
-        if selectedDownload?.id == item.id {
-            selectedDownload = nil
-        }
+        processQueue()
     }
 
     public func pauseAll(items: [DownloadItem], modelContext: ModelContext) {
@@ -383,9 +438,12 @@ public final class DownloadCoordinator {
     }
 
     public func resumeAll(items: [DownloadItem], modelContext: ModelContext) {
-        for item in items where item.status == .paused || item.status == .queued {
-            start(item: item, modelContext: modelContext)
+        self.modelContext = modelContext
+        for item in items where item.status == .paused {
+            item.status = .queued
         }
+        try? modelContext.save()
+        processQueue()
     }
 
     public func pauseAllDownloads() {
@@ -466,6 +524,8 @@ public final class DownloadCoordinator {
         activeTasks.removeValue(forKey: itemId)
         activeEngines.removeValue(forKey: itemId)
         speedSamplers.removeValue(forKey: itemId)
+
+        processQueue()
     }
 
     private func handleError(_ error: Error, for itemId: UUID) {
@@ -477,6 +537,8 @@ public final class DownloadCoordinator {
         activeTasks.removeValue(forKey: itemId)
         activeEngines.removeValue(forKey: itemId)
         speedSamplers.removeValue(forKey: itemId)
+
+        processQueue()
     }
 
     private func activeItem(id: UUID, in context: ModelContext) -> DownloadItem? {

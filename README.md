@@ -54,9 +54,12 @@ Download the latest disk image (`.dmg`) from our official GitHub Releases:
 * **Clipboard Paste**: Simply copy any link to your clipboard; opening the Add dialog will automatically detect and probe the file.
 
 ### Managing Your Downloads
+* **Multi-Selection & Batch Actions**: Select multiple downloads using `Shift + Click` or `⌘ + Click` (or `⌘A` to select all) to pause, resume, reveal, or remove items together in batch.
+* **Keyboard Delete**: Press the `Delete` key on your keyboard to instantly remove selected downloads from the list without deleting the downloaded files from disk.
 * **Pause / Resume**: Select any active download and click **Pause** (`⏸`) or **Resume** (`▶`) in the toolbar, or right-click to choose from the context menu.
 * **Stop All / Resume All**: Use the toolbar or the **Downloads** menu to quickly manage your entire download queue at once.
-* **Open in Finder**: Double-click any completed download or click the magnifying glass icon to reveal the downloaded file in Finder.
+* **Automatic Queue Management**: Automatically caps simultaneous active downloads according to your preferences, holding extra items in a high-priority FIFO queue.
+* **Open in Finder**: Double-click any completed download or right-click to reveal the downloaded files in Finder.
 
 ### Customizing Preferences (`⌘,`)
 Open **IDMac** → **Settings** (or press `⌘,`) to tailor the app to your setup:

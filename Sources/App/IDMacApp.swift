@@ -184,7 +184,7 @@ struct IDMacApp: App {
                         destinationFolder: defaultFolder,
                         connectionCount: UserDefaults.standard.integer(forKey: "defaultConnections") > 0 ? UserDefaults.standard.integer(forKey: "defaultConnections") : 8,
                         modelContext: context,
-                        startImmediately: true
+                        startImmediately: nil
                     )
                 }
             }

@@ -183,7 +183,7 @@ public final class LocalServer: ObservableObject {
                 destinationFolder: downloadsFolder,
                 connectionCount: UserDefaults.standard.integer(forKey: "defaultConnections") > 0 ? UserDefaults.standard.integer(forKey: "defaultConnections") : 8,
                 modelContext: context,
-                startImmediately: true
+                startImmediately: nil
             )
         }
     }

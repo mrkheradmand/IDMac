@@ -7,7 +7,7 @@ public struct MainSplitView: View {
     @Query(sort: \DownloadItem.dateAdded, order: .reverse) private var allDownloads: [DownloadItem]
 
     @State private var selectedFilter: SidebarFilter? = .all
-    @State private var selectedDownloadId: UUID?
+    @State private var selectedDownloadIds: Set<UUID> = []
     @State private var searchText = ""
     @State private var isAddSheetPresented = false
     @State private var isSettingsSheetPresented = false
@@ -56,9 +56,15 @@ public struct MainSplitView: View {
         return "No Downloads"
     }
 
+    private var selectedItems: [DownloadItem] {
+        allDownloads.filter { selectedDownloadIds.contains($0.id) }
+    }
+
     private var selectedItem: DownloadItem? {
-        guard let id = selectedDownloadId else { return nil }
-        return allDownloads.first(where: { $0.id == id })
+        if selectedDownloadIds.count == 1, let id = selectedDownloadIds.first {
+            return allDownloads.first(where: { $0.id == id })
+        }
+        return nil
     }
 
     public var body: some View {
@@ -83,7 +89,7 @@ public struct MainSplitView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    DownloadTableView(items: filteredDownloads, selection: $selectedDownloadId)
+                    DownloadTableView(items: filteredDownloads, selection: $selectedDownloadIds)
                 }
 
                 // Bottom Segment Inspector (Classic multi-part threads view)
@@ -92,6 +98,17 @@ public struct MainSplitView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+        }
+        .onDeleteCommand {
+            deleteSelectedFromList()
+        }
+        .background {
+            // Forward delete (Fn+Delete or external keyboard delete)
+            Button(action: deleteSelectedFromList) {
+                EmptyView()
+            }
+            .keyboardShortcut(.deleteForward, modifiers: [])
+            .hidden()
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -105,24 +122,26 @@ public struct MainSplitView: View {
                 Divider()
 
                 Button {
-                    if let item = selectedItem {
+                    let resumable = selectedItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed }
+                    for item in resumable {
                         coordinator.resume(item: item, modelContext: modelContext)
                     }
                 } label: {
                     Label("Resume", systemImage: "play.fill")
                 }
-                .disabled(selectedItem == nil || selectedItem?.status == .downloading || selectedItem?.status == .completed)
-                .help("Resume selected download")
+                .disabled(selectedItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed }.isEmpty)
+                .help("Resume selected downloads")
 
                 Button {
-                    if let item = selectedItem {
+                    let downloadable = selectedItems.filter { $0.status == .downloading || $0.status == .connecting }
+                    for item in downloadable {
                         coordinator.pause(item: item, modelContext: modelContext)
                     }
                 } label: {
                     Label("Pause", systemImage: "pause.fill")
                 }
-                .disabled(selectedItem == nil || selectedItem?.status != .downloading)
-                .help("Pause selected download")
+                .disabled(selectedItems.filter { $0.status == .downloading || $0.status == .connecting }.isEmpty)
+                .help("Pause selected downloads")
 
                 Button {
                     coordinator.pauseAll(items: allDownloads, modelContext: modelContext)
@@ -134,14 +153,13 @@ public struct MainSplitView: View {
                 Divider()
 
                 Button {
-                    if let item = selectedItem {
-                        coordinator.delete(item: item, deleteFile: false, modelContext: modelContext)
-                    }
+                    deleteSelectedFromList()
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
-                .disabled(selectedItem == nil)
-                .help("Remove download from list")
+                .disabled(selectedDownloadIds.isEmpty)
+                .keyboardShortcut(.delete, modifiers: [])
+                .help("Remove selected downloads from list (Delete)")
             }
 
             ToolbarItem(placement: .primaryAction) {
@@ -164,5 +182,12 @@ public struct MainSplitView: View {
         .onAppear {
             coordinator.modelContext = modelContext
         }
+    }
+
+    private func deleteSelectedFromList() {
+        let itemsToDelete = selectedItems
+        guard !itemsToDelete.isEmpty else { return }
+        coordinator.delete(items: itemsToDelete, deleteFile: false, modelContext: modelContext)
+        selectedDownloadIds.removeAll()
     }
 }

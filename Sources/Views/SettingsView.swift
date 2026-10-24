@@ -54,6 +54,7 @@ private struct GeneralSettingsTab: View {
     @AppStorage("showMenuBarIcon") private var showMenuBarIcon: Bool = true
     @AppStorage("keepRunningInMenuBar") private var keepRunningInMenuBar: Bool = true
     @AppStorage("hideDockIconWhenClosed") private var hideDockIconWhenClosed: Bool = true
+    @AppStorage("autoStartDownload") private var autoStartDownload: Bool = true
 
     private var resolvedDirectoryDisplay: String {
         if defaultDownloadDirectory.isEmpty {
@@ -104,6 +105,16 @@ private struct GeneralSettingsTab: View {
             }
 
             Section {
+                Toggle(isOn: $autoStartDownload) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Automatically start downloads when added")
+                            .font(.system(size: 13))
+                        Text("When enabled, new links begin downloading immediately. When disabled, links are placed in the queue as 'Queued'.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 Toggle(isOn: $autoCheckClipboard) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Monitor clipboard for downloadable links")
@@ -256,6 +267,9 @@ private struct AccelerationSettingsTab: View {
                     Text("5 downloads").tag(5)
                     Text("10 downloads").tag(10)
                     Text("Unlimited").tag(100)
+                }
+                .onChange(of: maxConcurrentDownloads) { _, _ in
+                    DownloadCoordinator.shared.processQueue()
                 }
 
                 Text("Controls how many downloads run simultaneously before queuing remaining items.")

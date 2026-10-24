@@ -71,6 +71,8 @@ function updateBadge() {
 setInterval(checkHealth, 10000);
 checkHealth();
 
+const interceptedDownloadIds = new Set();
+
 // Intercept browser downloads
 browser.downloads.onCreated.addListener(async (item) => {
   if (!isEnabled) return;
@@ -87,27 +89,57 @@ browser.downloads.onCreated.addListener(async (item) => {
     return;
   }
 
-  // Check if IDMac is online
-  const alive = await checkHealth();
-  if (!alive) {
-    console.log("IDMac is not running; letting Firefox handle download natively.");
-    return;
+  // Check if IDMac is online (check cached state first to eliminate network lag)
+  if (!isConnected) {
+    const alive = await checkHealth();
+    if (!alive) {
+      console.log("IDMac is not running; letting Firefox handle download natively.");
+      return;
+    }
   }
 
-  // Cancel and erase native Firefox download
-  try {
-    await browser.downloads.cancel(item.id);
-    await browser.downloads.erase({ id: item.id });
-  } catch (err) {
-    console.warn("Could not cancel Firefox download:", err);
-  }
+  interceptedDownloadIds.add(item.id);
+
+  // Instantly pause and cancel native Firefox download
+  cancelNativeDownload(item.id);
 
   // Forward to IDMac
-  sendToIDMac(url, item.filename, item.referrer);
+  sendToIDMac(url, item.filename, item.referrer, item.id);
 });
 
+// Continuously enforce cancellation if Gecko transitions state later
+browser.downloads.onChanged.addListener((delta) => {
+  if (interceptedDownloadIds.has(delta.id)) {
+    if (delta.state && delta.state.current === "in_progress") {
+      cancelNativeDownload(delta.id);
+    }
+  }
+});
+
+function cancelNativeDownload(id) {
+  try {
+    browser.downloads.pause(id).catch(() => {});
+  } catch (e) {}
+
+  browser.downloads.cancel(id).then(() => {
+    browser.downloads.erase({ id: id }).catch(() => {});
+  }).catch(() => {
+    // Retry in 50ms and 150ms in case the download record is still initializing in Gecko
+    setTimeout(() => {
+      browser.downloads.cancel(id).then(() => {
+        browser.downloads.erase({ id: id }).catch(() => {});
+      }).catch(() => {});
+    }, 50);
+    setTimeout(() => {
+      browser.downloads.cancel(id).then(() => {
+        browser.downloads.erase({ id: id }).catch(() => {});
+      }).catch(() => {});
+    }, 150);
+  });
+}
+
 // Forward download task to IDMac
-async function sendToIDMac(url, filename = "", referrer = "") {
+async function sendToIDMac(url, filename = "", referrer = "", downloadId = null) {
   try {
     const res = await fetch(`${IDMAC_SERVER}/add`, {
       method: "POST",
@@ -127,6 +159,12 @@ async function sendToIDMac(url, filename = "", referrer = "") {
       notify("IDMac Error", "Failed to queue download in IDMac.");
     }
   } catch (err) {
+    if (downloadId) {
+      interceptedDownloadIds.delete(downloadId);
+      try {
+        browser.downloads.resume(downloadId);
+      } catch (e) {}
+    }
     notify("IDMac Connection Lost", "Please ensure IDMac is running on your Mac.");
   }
 }
