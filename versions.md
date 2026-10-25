@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.2.1 (build 15) — 2026-10-25
+
+### Added
+- **Accurate Failure vs Cancellation Detection (`DownloadCoordinator.swift`, `DownloadEngine.swift`)**:
+  - Implemented `isCancellation(_:)` to distinguish intentional user cancellation/pause operations from genuine network, server, or filesystem download errors.
+
+### Modified
+- **Graceful Download Pause State Transition (`DownloadCoordinator.swift`, `DownloadEngine.swift`)**:
+  - Fixed pause flow to preserve the `Paused` state instead of erroneously transitioning downloads to `Failed`.
+  - Suppressed cancellation errors inside `DownloadEngine` when a pause or task cancellation is initiated.
+  - Cleared transient `errorMessage` when pausing or resuming downloads so false "Error: cancelled" messages no longer display in the segment inspector.
+- **Segment Inspector Error Display (`SegmentInspectorView.swift`)**:
+  - Guarded the bottom error banner so that error text is only rendered when a download's status is genuinely `.failed`.
+
+### Removed
+- Eliminated false `Failed` status and "Error: cancelled" warnings when pausing downloads.
+
+---
+
 ## 1.2.0 (build 14) — 2026-10-25
 
 ### Added

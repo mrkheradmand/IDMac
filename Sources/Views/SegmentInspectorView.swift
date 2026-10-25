@@ -94,7 +94,7 @@ public struct SegmentInspectorView: View {
 
                 Spacer()
 
-                if let err = item.errorMessage {
+                if let err = item.errorMessage, item.status == .failed, !err.isEmpty {
                     Text("Error: \(err)")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(.red)

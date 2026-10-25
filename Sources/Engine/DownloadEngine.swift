@@ -142,10 +142,20 @@ public actor DownloadEngine {
         } catch {
             await fileStorage.close()
             isRunning = false
-            if !isCancelled {
+            if !isCancelled && !Task.isCancelled && !isCancellationError(error) {
                 onError(error)
             }
         }
+    }
+
+    private func isCancellationError(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled { return true }
+        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSUserCancelledError { return true }
+        if error.localizedDescription.lowercased().contains("cancel") { return true }
+        return false
     }
 
     private func calculateSegments(totalSize: Int64, count: Int) -> [(index: Int, start: Int64, end: Int64, current: Int64, isCompleted: Bool)] {

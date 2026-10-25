@@ -392,6 +392,12 @@ public final class DownloadCoordinator {
     public func pause(item: DownloadItem, modelContext: ModelContext) {
         self.modelContext = modelContext
         let itemId = item.id
+
+        item.status = .paused
+        item.errorMessage = nil
+        item.currentSpeed = 0
+        try? modelContext.save()
+
         if let engine = activeEngines[itemId] {
             Task {
                 await engine.pause()
@@ -402,13 +408,11 @@ public final class DownloadCoordinator {
         activeEngines.removeValue(forKey: itemId)
         speedSamplers.removeValue(forKey: itemId)
 
-        item.status = .paused
-        item.currentSpeed = 0
-        try? modelContext.save()
         processQueue()
     }
 
     public func resume(item: DownloadItem, modelContext: ModelContext) {
+        item.errorMessage = nil
         if item.status == .deleted {
             item.downloadedBytes = 0
             for seg in item.segments {
@@ -464,7 +468,7 @@ public final class DownloadCoordinator {
     }
 
     public func pauseAll(items: [DownloadItem], modelContext: ModelContext) {
-        for item in items where item.status == .downloading {
+        for item in items where item.status == .downloading || item.status == .connecting {
             pause(item: item, modelContext: modelContext)
         }
     }
@@ -562,6 +566,24 @@ public final class DownloadCoordinator {
 
     private func handleError(_ error: Error, for itemId: UUID) {
         guard let context = modelContext, let item = activeItem(id: itemId, in: context) else { return }
+
+        // If the task was cancelled, or if the item is already paused, or if the error is a cancellation,
+        // this is NOT a download failure. Keep status as .paused and do not show an error.
+        if isCancellation(error) || item.status == .paused {
+            if item.status != .paused {
+                item.status = .paused
+            }
+            item.errorMessage = nil
+            item.currentSpeed = 0
+            try? context.save()
+            activeTasks.removeValue(forKey: itemId)
+            activeEngines.removeValue(forKey: itemId)
+            speedSamplers.removeValue(forKey: itemId)
+            processQueue()
+            return
+        }
+
+        // Genuine failure:
         item.status = .failed
         item.errorMessage = error.localizedDescription
         item.currentSpeed = 0
@@ -571,6 +593,16 @@ public final class DownloadCoordinator {
         speedSamplers.removeValue(forKey: itemId)
 
         processQueue()
+    }
+
+    private func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled { return true }
+        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSUserCancelledError { return true }
+        if error.localizedDescription.lowercased().contains("cancel") { return true }
+        return false
     }
 
     private func activeItem(id: UUID, in context: ModelContext) -> DownloadItem? {
