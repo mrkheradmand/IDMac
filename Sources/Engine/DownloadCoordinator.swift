@@ -45,6 +45,8 @@ public final class DownloadCoordinator {
         }
         var totalSize: Int64 = 0
         var supportsResume = false
+        var detectedEtag: String? = nil
+        var detectedLastModified: String? = nil
 
         do {
             let probe = try await DownloadEngine.probe(url: url)
@@ -53,6 +55,8 @@ public final class DownloadCoordinator {
             }
             totalSize = probe.totalSize
             supportsResume = probe.supportsResume
+            detectedEtag = probe.etag
+            detectedLastModified = probe.lastModified
         } catch {
             print("Probe error: \(error.localizedDescription), proceeding with defaults")
         }
@@ -100,7 +104,11 @@ public final class DownloadCoordinator {
             dateAdded: Date(),
             destinationPath: destinationURL.path,
             connectionCount: connectionCount,
-            supportsResume: supportsResume
+            supportsResume: supportsResume,
+            errorMessage: nil,
+            currentSpeed: 0.0,
+            etag: detectedEtag,
+            lastModified: detectedLastModified
         )
 
         modelContext.insert(item)
@@ -299,7 +307,9 @@ public final class DownloadCoordinator {
             id: itemId,
             url: url,
             destinationURL: destURL,
-            connectionCount: item.connectionCount
+            connectionCount: item.connectionCount,
+            etag: item.etag,
+            lastModified: item.lastModified
         )
         activeEngines[itemId] = engine
 
@@ -308,13 +318,13 @@ public final class DownloadCoordinator {
 
         // Ensure segments are properly initialized with accurate byte ranges before starting workers
         if item.segments.isEmpty {
-            let count = (item.supportsResume && item.fileSize > 0) ? max(1, item.connectionCount) : 1
             let total = item.fileSize
-            if count > 1 && total > 0 {
-                let chunkSize = total / Int64(count)
-                for i in 0..<count {
+            let effectiveCount = (item.supportsResume && total > 0) ? max(1, min(item.connectionCount, Int(total))) : 1
+            if effectiveCount > 1 && total > 0 {
+                let chunkSize = total / Int64(effectiveCount)
+                for i in 0..<effectiveCount {
                     let start = Int64(i) * chunkSize
-                    let end = (i == count - 1) ? (total - 1) : (start + chunkSize - 1)
+                    let end = (i == effectiveCount - 1) ? (total - 1) : (start + chunkSize - 1)
                     let seg = DownloadSegment(
                         segmentIndex: i,
                         startByte: start,
@@ -516,10 +526,10 @@ public final class DownloadCoordinator {
             seg.isCompleted = update.isCompleted
         } else {
             let total = item.fileSize
-            let count = max(1, item.connectionCount)
-            let chunkSize = total > 0 ? (total / Int64(count)) : 0
+            let effectiveCount = total > 0 ? max(1, min(item.connectionCount, Int(total))) : 1
+            let chunkSize = total > 0 ? (total / Int64(effectiveCount)) : 0
             let start = Int64(update.segmentIndex) * chunkSize
-            let end = (update.segmentIndex == count - 1) ? max(0, total - 1) : (start + chunkSize - 1)
+            let end = (update.segmentIndex == effectiveCount - 1) ? max(0, total - 1) : (start + chunkSize - 1)
             let newSeg = DownloadSegment(
                 segmentIndex: update.segmentIndex,
                 startByte: start,
@@ -547,7 +557,72 @@ public final class DownloadCoordinator {
 
     private func handleComplete(for itemId: UUID) {
         guard let context = modelContext, let item = activeItem(id: itemId, in: context) else { return }
+
+        // 1. Zero-Gap Segment Sweep: verify all segments completed without gaps
+        let incompleteSegments = item.segments.filter { !$0.isCompleted && $0.currentByte <= $0.endByte }
+        if !incompleteSegments.isEmpty {
+            item.status = .failed
+            item.errorMessage = "Integrity verification failed: \(incompleteSegments.count) segment(s) incomplete."
+            item.currentSpeed = 0
+            try? context.save()
+            activeTasks.removeValue(forKey: itemId)
+            activeEngines.removeValue(forKey: itemId)
+            speedSamplers.removeValue(forKey: itemId)
+            processQueue()
+            return
+        }
+
+        // 2. Physical Disk File Validation & Byte-Exact Size Verification
+        let fileManager = FileManager.default
+        guard fileManager.fileExists(atPath: item.destinationPath) else {
+            item.status = .failed
+            item.errorMessage = "Integrity verification failed: Destination file missing on disk."
+            item.currentSpeed = 0
+            try? context.save()
+            activeTasks.removeValue(forKey: itemId)
+            activeEngines.removeValue(forKey: itemId)
+            speedSamplers.removeValue(forKey: itemId)
+            processQueue()
+            return
+        }
+
+        if item.fileSize > 0 {
+            do {
+                let attrs = try fileManager.attributesOfItem(atPath: item.destinationPath)
+                let diskSize = (attrs[.size] as? NSNumber)?.int64Value ?? -1
+                if diskSize != item.fileSize {
+                    item.status = .failed
+                    item.errorMessage = "Integrity verification failed: Size mismatch (expected \(FormatUtils.formatBytes(item.fileSize)), found \(FormatUtils.formatBytes(diskSize)) on disk)."
+                    item.currentSpeed = 0
+                    try? context.save()
+                    activeTasks.removeValue(forKey: itemId)
+                    activeEngines.removeValue(forKey: itemId)
+                    speedSamplers.removeValue(forKey: itemId)
+                    processQueue()
+                    return
+                }
+            } catch {
+                item.status = .failed
+                item.errorMessage = "Integrity verification failed: Unable to verify file attributes (\(error.localizedDescription))."
+                item.currentSpeed = 0
+                try? context.save()
+                activeTasks.removeValue(forKey: itemId)
+                activeEngines.removeValue(forKey: itemId)
+                speedSamplers.removeValue(forKey: itemId)
+                processQueue()
+                return
+            }
+        } else {
+            // Chunked / unknown size transfer: record finalized disk size
+            if let attrs = try? fileManager.attributesOfItem(atPath: item.destinationPath),
+               let diskSize = (attrs[.size] as? NSNumber)?.int64Value, diskSize > 0 {
+                item.fileSize = diskSize
+                item.downloadedBytes = diskSize
+            }
+        }
+
         item.status = .completed
+        item.errorMessage = nil
         item.currentSpeed = 0
         if item.fileSize > 0 {
             item.downloadedBytes = item.fileSize
@@ -580,6 +655,27 @@ public final class DownloadCoordinator {
             activeEngines.removeValue(forKey: itemId)
             speedSamplers.removeValue(forKey: itemId)
             processQueue()
+            return
+        }
+
+        // Check for Remote File Drift / Server Range Incompatibility:
+        if error.localizedDescription.contains("Remote file may have been updated") || error.localizedDescription.contains("does not support ranges") {
+            print("Detected remote file drift or range incompatibility for \(item.filename). Restarting clean...")
+            item.supportsResume = false
+            item.connectionCount = 1
+            item.downloadedBytes = 0
+            item.segments.removeAll()
+            item.errorMessage = "Remote file updated or server does not support ranges. Restarting from beginning..."
+            try? context.save()
+
+            activeTasks.removeValue(forKey: itemId)
+            activeEngines.removeValue(forKey: itemId)
+            speedSamplers.removeValue(forKey: itemId)
+
+            // Remove potentially corrupt partial file from disk
+            try? FileManager.default.removeItem(atPath: item.destinationPath)
+
+            startDirect(item: item, modelContext: context)
             return
         }
 

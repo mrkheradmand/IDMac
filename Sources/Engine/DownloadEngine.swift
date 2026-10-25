@@ -5,6 +5,8 @@ public struct ProbeResult: Sendable {
     public let totalSize: Int64
     public let supportsResume: Bool
     public let contentType: String?
+    public let etag: String?
+    public let lastModified: String?
 }
 
 public actor DownloadEngine {
@@ -12,17 +14,28 @@ public actor DownloadEngine {
     public let url: URL
     public let destinationURL: URL
     public let connectionCount: Int
+    public let etag: String?
+    public let lastModified: String?
 
     private var workers: [SegmentWorker] = []
     private var storage: FileStorageManager?
     private var isRunning = false
     private var isCancelled = false
 
-    public init(id: UUID, url: URL, destinationURL: URL, connectionCount: Int = 8) {
+    public init(
+        id: UUID,
+        url: URL,
+        destinationURL: URL,
+        connectionCount: Int = 8,
+        etag: String? = nil,
+        lastModified: String? = nil
+    ) {
         self.id = id
         self.url = url
         self.destinationURL = destinationURL
         self.connectionCount = connectionCount
+        self.etag = etag
+        self.lastModified = lastModified
     }
 
     public static func probe(url: URL) async throws -> ProbeResult {
@@ -56,12 +69,16 @@ public actor DownloadEngine {
         }
 
         let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type")
+        let etag = httpResponse.value(forHTTPHeaderField: "ETag")
+        let lastModified = httpResponse.value(forHTTPHeaderField: "Last-Modified")
 
         return ProbeResult(
             filename: filename,
             totalSize: max(0, totalSize),
             supportsResume: supportsResume,
-            contentType: contentType
+            contentType: contentType,
+            etag: etag,
+            lastModified: lastModified
         )
     }
 
@@ -119,7 +136,9 @@ public actor DownloadEngine {
                     startByte: seg.start,
                     endByte: seg.end,
                     currentByte: seg.current,
-                    storage: fileStorage
+                    storage: fileStorage,
+                    etag: etag,
+                    lastModified: lastModified
                 )
                 activeWorkers.append(worker)
             }
@@ -159,16 +178,17 @@ public actor DownloadEngine {
     }
 
     private func calculateSegments(totalSize: Int64, count: Int) -> [(index: Int, start: Int64, end: Int64, current: Int64, isCompleted: Bool)] {
-        guard count > 1, totalSize > 0 else {
+        let effectiveCount = (totalSize > 0) ? max(1, min(count, Int(totalSize))) : 1
+        guard effectiveCount > 1, totalSize > 0 else {
             return [(index: 0, start: 0, end: max(0, totalSize - 1), current: 0, isCompleted: false)]
         }
 
         var results: [(index: Int, start: Int64, end: Int64, current: Int64, isCompleted: Bool)] = []
-        let chunkSize = totalSize / Int64(count)
+        let chunkSize = totalSize / Int64(effectiveCount)
 
-        for i in 0..<count {
+        for i in 0..<effectiveCount {
             let start = Int64(i) * chunkSize
-            let end = (i == count - 1) ? (totalSize - 1) : (start + chunkSize - 1)
+            let end = (i == effectiveCount - 1) ? (totalSize - 1) : (start + chunkSize - 1)
             results.append((index: i, start: start, end: end, current: start, isCompleted: false))
         }
 

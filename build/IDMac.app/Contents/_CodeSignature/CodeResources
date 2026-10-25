@@ -38,11 +38,11 @@
 		</data>
 		<key>Resources/extensions/firefox/manifest.json</key>
 		<data>
-		pK5MPeU7t777Ah41J5ZcCdoOihI=
+		457HLPZ8BfBzu5qc2YvwoAuI+fg=
 		</data>
 		<key>Resources/extensions/firefox/popup.html</key>
 		<data>
-		2iM/HxtqvP16s2r5OUqXfdr03l0=
+		TKPM9XsmrK+u5DdBTGzDWW+JAgA=
 		</data>
 		<key>Resources/extensions/firefox/popup.js</key>
 		<data>
@@ -50,32 +50,11 @@
 		</data>
 		<key>Resources/extensions/idmac-firefox.xpi</key>
 		<data>
-		AQH21g48qvSdJB70h6HlKJ2N6EY=
+		H/r7paXR07999Kr3RbQG3TtH39s=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>MacOS/IDMac.dSYM/Contents/Info.plist</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			UqjYxITXzdtoNrqy70Q7215y22E29bCmT9VtNlV7Ef8=
-			</data>
-		</dict>
-		<key>MacOS/IDMac.dSYM/Contents/Resources/DWARF/IDMac</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			N5s56/wlcvhj8GIOrkMyeOWXGbU+R/5ZTQtIiAOz9cc=
-			</data>
-		</dict>
-		<key>MacOS/IDMac.dSYM/Contents/Resources/Relocations/aarch64/IDMac.yml</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			LQcGVjx1dMUr6Rwl5SztJ7Tz/wtlRa4pUOQGzFIjPAY=
-			</data>
-		</dict>
 		<key>Resources/AppIcon.icns</key>
 		<dict>
 			<key>hash2</key>
@@ -136,14 +115,14 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			AyOqmWxXFpgzZI44YD3KumHgIQVDokm3NgB2EFWGVb4=
+			tvxnLHQ/0D+lvlzEIk8mBAXdqL0TupQM6chPpxRlieE=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/popup.html</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			dPMrAvH4sAfmw/MyQC5QBEPBXsrdYy6l+g6WYYjBcjY=
+			GaWql2kHhryCmklEQv79SA9TXvBJvYM1OU3Rs6DQlQc=
 			</data>
 		</dict>
 		<key>Resources/extensions/firefox/popup.js</key>
@@ -157,7 +136,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			zyqA2p1ARS/qlKbtsCbFw4PfzKXJROrIasMpx3M6Nyc=
+			lBtM1YreBeOKzIElMMMv0FE0phvcpPi91SdztGjM2Uc=
 			</data>
 		</dict>
 	</dict>

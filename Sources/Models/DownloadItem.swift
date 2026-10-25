@@ -16,6 +16,8 @@ public final class DownloadItem {
     public var supportsResume: Bool
     public var errorMessage: String?
     public var currentSpeed: Double // bytes per second, ephemeral
+    public var etag: String?
+    public var lastModified: String?
 
     @Relationship(deleteRule: .cascade)
     public var segments: [DownloadSegment]
@@ -43,7 +45,9 @@ public final class DownloadItem {
         connectionCount: Int = 8,
         supportsResume: Bool = false,
         errorMessage: String? = nil,
-        currentSpeed: Double = 0.0
+        currentSpeed: Double = 0.0,
+        etag: String? = nil,
+        lastModified: String? = nil
     ) {
         let resolvedFilename = filename.isEmpty ? (URL(string: urlString)?.lastPathComponent ?? "download") : filename
         self.id = id
@@ -59,6 +63,8 @@ public final class DownloadItem {
         self.supportsResume = supportsResume
         self.errorMessage = errorMessage
         self.currentSpeed = currentSpeed
+        self.etag = etag
+        self.lastModified = lastModified
         self.segments = []
     }
 

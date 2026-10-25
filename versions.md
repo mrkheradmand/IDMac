@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.3.0 (build 16) — 2026-10-25
+
+### Added
+- **Strict HTTP Range Status Enforcement (`SegmentWorker.swift`)**:
+  - Implemented strict HTTP status verification when requesting sub-ranges (`currentByte > 0`), requiring servers to return `206 Partial Content`.
+  - Rejects `200 OK` full-file responses for sub-range requests to prevent writing byte 0 into offset slots and causing silent file corruption.
+- **Server Drift Detection & `If-Range` Validation (`DownloadEngine.swift`, `SegmentWorker.swift`, `DownloadCoordinator.swift`, `DownloadItem.swift`)**:
+  - Persisted HTTP validation tokens (`ETag` and `Last-Modified`) on `DownloadItem` during URL probe and connection establishment.
+  - Injected `If-Range` validation headers into range requests upon download resume.
+  - Automatically detects when a remote file is updated on the server during a paused download, triggering a clean reset and full restart from byte 0 to prevent stitched version corruption.
+- **Post-Download Byte-Exact Size Validation (`DownloadCoordinator.swift`)**:
+  - Added physical filesystem inspection via `FileManager.default.attributesOfItem(atPath:)` before finalizing downloads.
+  - Asserts that the finalized on-disk byte size matches the probed Content-Length exactly; flags size mismatches as failures rather than marking corrupted files completed.
+- **Zero-Gap Segment Completion Sweep (`DownloadCoordinator.swift`)**:
+  - Implemented pre-completion validation verifying that every stream segment has reached `isCompleted == true` and `currentByte >= endByte`.
+  - Refuses completion if any unwritten gaps or dropped threads are detected.
+- **Adaptive Stream Geometry for Small & Edge Payloads (`DownloadEngine.swift`, `DownloadCoordinator.swift`)**:
+  - Clamped stream connection count for files smaller than the requested stream count (`effectiveCount = min(count, fileSize)`), preventing zero-byte division or negative byte bounds on tiny downloads.
+
+### Modified
+- **Worker Segment Bounds Clamping (`SegmentWorker.swift`)**:
+  - Added strict upper-bound byte enforcement in the worker read loop to prevent any stream from writing past its assigned `endByte`.
+
+### Removed
+- Eliminated silent data corruption risks from out-of-order writes, non-range server responses, and mid-download remote file drift.
+
+---
+
 ## 1.2.1 (build 15) — 2026-10-25
 
 ### Added
