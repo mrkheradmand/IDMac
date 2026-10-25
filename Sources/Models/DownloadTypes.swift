@@ -7,6 +7,7 @@ public enum DownloadStatus: String, Codable, CaseIterable, Sendable {
     case paused = "Paused"
     case completed = "Completed"
     case failed = "Failed"
+    case deleted = "Deleted"
 
     public var iconName: String {
         switch self {
@@ -16,6 +17,7 @@ public enum DownloadStatus: String, Codable, CaseIterable, Sendable {
         case .paused: return "pause.circle.fill"
         case .completed: return "checkmark.circle.fill"
         case .failed: return "exclamationmark.circle.fill"
+        case .deleted: return "trash.circle.fill"
         }
     }
 }

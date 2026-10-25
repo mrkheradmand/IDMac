@@ -84,4 +84,13 @@ public final class DownloadItem {
         let remaining = max(0, fileSize - downloadedBytes)
         return FormatUtils.formatETA(remainingBytes: remaining, bytesPerSec: currentSpeed)
     }
+
+    public var fileExistsOnDisk: Bool {
+        guard !destinationPath.isEmpty else { return false }
+        return FileManager.default.fileExists(atPath: destinationPath)
+    }
+
+    public var isEffectivelyDeleted: Bool {
+        status == .deleted || (status == .completed && !fileExistsOnDisk)
+    }
 }

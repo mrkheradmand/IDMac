@@ -20,13 +20,15 @@ public struct DownloadTableView: View {
     public var body: some View {
         Table(items, selection: $selection) {
             TableColumn("File Name") { item in
+                let isDeleted = item.status == .deleted || (item.status == .completed && !item.fileExistsOnDisk)
                 HStack(spacing: 8) {
-                    Image(systemName: item.category.iconName)
-                        .foregroundColor(.accentColor)
+                    Image(systemName: isDeleted ? "trash.fill" : item.category.iconName)
+                        .foregroundColor(isDeleted ? .red : .accentColor)
                         .frame(width: 16)
                     Text(item.filename)
                         .fontWeight(.medium)
                         .lineLimit(1)
+                        .foregroundColor(isDeleted ? .red : .primary)
                 }
             }
             .width(min: 140, ideal: 200)
@@ -77,6 +79,9 @@ public struct DownloadTableView: View {
             .width(min: 90, ideal: 110)
         }
         .scrollIndicators(.never, axes: .horizontal)
+        .onAppear {
+            coordinator.verifyDiskFiles(in: modelContext)
+        }
         .onDeleteCommand {
             deleteSelectedFromList()
         }
@@ -96,7 +101,7 @@ public struct DownloadTableView: View {
     @ViewBuilder
     private func contextMenuContent(for targetItems: [DownloadItem], targetIds: Set<UUID>) -> some View {
         let activeItems = targetItems.filter { $0.status == .downloading || $0.status == .connecting }
-        let resumableItems = targetItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed }
+        let resumableItems = targetItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed || $0.status == .deleted }
 
         if !activeItems.isEmpty {
             Button(activeItems.count > 1 ? "Pause \(activeItems.count) Downloads" : "Pause Download") {
@@ -118,16 +123,27 @@ public struct DownloadTableView: View {
             Divider()
         }
 
-        if targetItems.count == 1, let singleItem = targetItems.first, singleItem.status == .completed {
+        if targetItems.count == 1, let singleItem = targetItems.first, (singleItem.status == .completed || singleItem.status == .deleted) {
+            let isFileAvailable = singleItem.fileExistsOnDisk && singleItem.status != .deleted
             Button("Open File") {
-                NSWorkspace.shared.open(URL(fileURLWithPath: singleItem.destinationPath))
+                if isFileAvailable {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: singleItem.destinationPath))
+                }
             }
+            .disabled(!isFileAvailable)
         }
 
+        let anyFileAvailable = targetItems.contains { $0.fileExistsOnDisk && $0.status != .deleted }
         Button(targetItems.count > 1 ? "Show in Finder (\(targetItems.count) Files)" : "Show in Finder") {
-            let urls = targetItems.map { URL(fileURLWithPath: $0.destinationPath) }
-            NSWorkspace.shared.activateFileViewerSelecting(urls)
+            let urls = targetItems.compactMap { item -> URL? in
+                guard item.fileExistsOnDisk && item.status != .deleted else { return nil }
+                return URL(fileURLWithPath: item.destinationPath)
+            }
+            if !urls.isEmpty {
+                NSWorkspace.shared.activateFileViewerSelecting(urls)
+            }
         }
+        .disabled(!anyFileAvailable)
 
         Button(targetItems.count > 1 ? "Copy Download Links (\(targetItems.count))" : "Copy Download Link") {
             let links = targetItems.map { $0.urlString }.joined(separator: "\n")
@@ -151,6 +167,18 @@ public struct DownloadTableView: View {
 
         Divider()
 
+        let existingFilesOnDisk = targetItems.filter { $0.fileExistsOnDisk && $0.status != .deleted }
+        if !existingFilesOnDisk.isEmpty {
+            Button(existingFilesOnDisk.count > 1 ? "Delete \(existingFilesOnDisk.count) Files from Disk" : "Delete File from Disk", role: .destructive) {
+                for item in existingFilesOnDisk {
+                    let path = item.destinationPath
+                    try? FileManager.default.removeItem(atPath: path)
+                    item.status = .deleted
+                }
+                try? modelContext.save()
+            }
+        }
+
         Button(targetItems.count > 1 ? "Remove \(targetItems.count) Items from List" : "Remove from List", role: .destructive) {
             coordinator.delete(items: targetItems, deleteFile: false, modelContext: modelContext)
             selection.subtract(targetIds)
@@ -160,6 +188,7 @@ public struct DownloadTableView: View {
             coordinator.delete(items: targetItems, deleteFile: true, modelContext: modelContext)
             selection.subtract(targetIds)
         }
+        .disabled(!anyFileAvailable)
     }
 
     private func deleteSelectedFromList() {
@@ -172,7 +201,15 @@ public struct DownloadTableView: View {
     @MainActor
     private func handlePrimaryAction(for item: DownloadItem) {
         if item.status == .completed {
-            NSWorkspace.shared.open(URL(fileURLWithPath: item.destinationPath))
+            if item.fileExistsOnDisk {
+                NSWorkspace.shared.open(URL(fileURLWithPath: item.destinationPath))
+            } else {
+                item.status = .deleted
+                try? modelContext.save()
+                NSSound.beep()
+            }
+        } else if item.status == .deleted {
+            NSSound.beep()
         } else if item.status == .downloading {
             coordinator.pause(item: item, modelContext: modelContext)
         } else {

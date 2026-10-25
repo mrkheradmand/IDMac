@@ -210,6 +210,9 @@ public final class DownloadCoordinator {
                 case .failed:
                     infoParts.append("The file \"\(filename)\" is in your download list (Failed).")
                     infoParts.append("• Status: Failed previously")
+                case .deleted:
+                    infoParts.append("The file \"\(filename)\" is in your download list (Deleted from disk).")
+                    infoParts.append("• Status: Deleted\(sizeStr)")
                 }
             } else if fileExistsOnDisk {
                 infoParts.append("A file named \"\(filename)\" already exists in your destination folder.")
@@ -406,7 +409,36 @@ public final class DownloadCoordinator {
     }
 
     public func resume(item: DownloadItem, modelContext: ModelContext) {
+        if item.status == .deleted {
+            item.downloadedBytes = 0
+            for seg in item.segments {
+                seg.currentByte = seg.startByte
+                seg.isCompleted = false
+            }
+        }
         start(item: item, modelContext: modelContext)
+    }
+
+    public func verifyDiskFiles(in context: ModelContext) {
+        let descriptor = FetchDescriptor<DownloadItem>()
+        guard let items = try? context.fetch(descriptor) else { return }
+        var hasChanges = false
+        for item in items {
+            if item.status == .completed {
+                if !item.destinationPath.isEmpty && !FileManager.default.fileExists(atPath: item.destinationPath) {
+                    item.status = .deleted
+                    hasChanges = true
+                }
+            } else if item.status == .deleted {
+                if !item.destinationPath.isEmpty && FileManager.default.fileExists(atPath: item.destinationPath) {
+                    item.status = .completed
+                    hasChanges = true
+                }
+            }
+        }
+        if hasChanges {
+            try? context.save()
+        }
     }
 
     public func delete(item: DownloadItem, deleteFile: Bool, modelContext: ModelContext) {

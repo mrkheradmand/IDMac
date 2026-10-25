@@ -54,7 +54,7 @@ public struct SidebarView: View {
                     }
                 }
 
-                ForEach([DownloadStatus.downloading, .completed, .paused, .queued, .failed], id: \.self) { stat in
+                ForEach([DownloadStatus.downloading, .completed, .paused, .queued, .failed, .deleted], id: \.self) { stat in
                     NavigationLink(value: SidebarFilter.status(stat)) {
                         HStack {
                             Label(stat.rawValue, systemImage: stat.iconName)

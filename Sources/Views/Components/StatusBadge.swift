@@ -13,7 +13,7 @@ public struct StatusBadge: View {
         case .completed: return .green
         case .paused: return .orange
         case .queued: return .gray
-        case .failed: return .red
+        case .failed, .deleted: return .red
         }
     }
 

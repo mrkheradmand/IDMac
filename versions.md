@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## 1.2.0 (build 14) — 2026-10-25
+
+### Added
+- **New Download Status 'Deleted' (`DownloadTypes.swift`, `SidebarView.swift`, `StatusBadge.swift`)**:
+  - Introduced new dedicated `Deleted` download status with red `trash.circle.fill` badge for files removed from disk.
+  - Added "Deleted" status category filter in the sidebar with live item count so users can inspect deleted downloads separately.
+- **Dynamic File Existence Verification & Visual Indicator (`DownloadItem.swift`, `DownloadTableView.swift`, `DownloadCoordinator.swift`)**:
+  - Added continuous and event-driven disk presence checking (`verifyDiskFiles`) on app launch, window focus (`NSApplication.didBecomeActiveNotification`), and periodic background polling.
+  - Automatically transitions completed items to `Deleted` status if their underlying file is deleted or missing from the download directory, and restores them to `Completed` if the file is returned.
+  - Highlights deleted/missing files in the download list by rendering their file name and icon in distinctive red text.
+- **Context Menu 'Delete File from Disk' Action (`DownloadTableView.swift`)**:
+  - Added a dedicated right-click option allowing users to delete the downloaded file from disk while keeping the record in the list as `Deleted`.
+
+### Modified
+- **Context Menu Missing File Guard (`DownloadTableView.swift`)**:
+  - Disabled "Open File", "Show in Finder", and "Delete File and Remove" context menu options for downloads whose files are missing from drive or marked `Deleted`.
+  - Added safety guard to primary double-click action to prevent opening missing files.
+- **Resume & Redownload for Deleted Files (`DownloadCoordinator.swift`, `MainSplitView.swift`)**:
+  - Resuming or redownloading a deleted file automatically resets downloaded byte counts and downloads the file fresh to disk.
+
+### Removed
+- Eliminated dead file access attempts and Finder activation errors when interacting with downloads deleted from disk outside the application.
+
+---
+
 ## 1.1.0 (build 13) — 2026-10-23
 
 ### Added

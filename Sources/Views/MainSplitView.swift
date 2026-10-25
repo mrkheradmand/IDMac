@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Combine
 
 @MainActor
 public struct MainSplitView: View {
@@ -11,6 +12,7 @@ public struct MainSplitView: View {
     @State private var searchText = ""
     @State private var isAddSheetPresented = false
     @State private var isSettingsSheetPresented = false
+    private let diskCheckTimer = Timer.publish(every: 4, on: .main, in: .common).autoconnect()
 
     private var coordinator: DownloadCoordinator {
         DownloadCoordinator.shared
@@ -122,14 +124,14 @@ public struct MainSplitView: View {
                 Divider()
 
                 Button {
-                    let resumable = selectedItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed }
+                    let resumable = selectedItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed || $0.status == .deleted }
                     for item in resumable {
                         coordinator.resume(item: item, modelContext: modelContext)
                     }
                 } label: {
                     Label("Resume", systemImage: "play.fill")
                 }
-                .disabled(selectedItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed }.isEmpty)
+                .disabled(selectedItems.filter { $0.status == .paused || $0.status == .queued || $0.status == .failed || $0.status == .deleted }.isEmpty)
                 .help("Resume selected downloads")
 
                 Button {
@@ -181,6 +183,13 @@ public struct MainSplitView: View {
         }
         .onAppear {
             coordinator.modelContext = modelContext
+            coordinator.verifyDiskFiles(in: modelContext)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            coordinator.verifyDiskFiles(in: modelContext)
+        }
+        .onReceive(diskCheckTimer) { _ in
+            coordinator.verifyDiskFiles(in: modelContext)
         }
     }
 
