@@ -2,6 +2,8 @@
 
 ### Native Multi-Stream Download Accelerator for macOS
 
+--- 
+
 <div align="center">
 
 [![Version](https://img.shields.io/github/v/release/mrkheradmand/IDMac?color=blue&label=version)](https://github.com/mrkheradmand/IDMac/releases) [![Build](https://img.shields.io/github/actions/workflow/status/mrkheradmand/IDMac/release.yml?label=build)](https://github.com/mrkheradmand/IDMac/actions) [![Last Commit](https://img.shields.io/github/last-commit/mrkheradmand/IDMac)](https://github.com/mrkheradmand/IDMac/commits/master) [![Downloads](https://img.shields.io/github/downloads/mrkheradmand/IDMac/total)](https://github.com/mrkheradmand/IDMac/releases/latest) [![Stars](https://img.shields.io/github/stars/mrkheradmand/IDMac?color=gold)](https://github.com/mrkheradmand/IDMac/stargazers)
