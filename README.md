@@ -16,7 +16,9 @@ IDMac is a high-speed, modern download manager designed exclusively for macOS. B
 
 No Electron. No web wrappers. No bloat. Just pure, lightning-fast native macOS performance.
 
----
+<p align="center">
+  <img src="Resources/app.png" alt="IDMac welcome screen" width="950">
+</p>
 
 ## ✨ Features You'll Love
 
