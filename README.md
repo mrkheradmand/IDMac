@@ -2,6 +2,14 @@
 
 ### Native Multi-Stream Download Accelerator for macOS
 
+<div align="center">
+
+[![Version](https://img.shields.io/github/v/release/mrkheradmand/IDMac?color=blue&label=version)](https://github.com/mrkheradmand/IDMac/releases) [![Build](https://img.shields.io/github/actions/workflow/status/mrkheradmand/IDMac/release.yml?label=build)](https://github.com/mrkheradmand/IDMac/actions) [![Last Commit](https://img.shields.io/github/last-commit/mrkheradmand/IDMac)](https://github.com/mrkheradmand/IDMac/commits/master) [![Downloads](https://img.shields.io/github/downloads/mrkheradmand/IDMac/total)](https://github.com/mrkheradmand/IDMac/releases/latest) [![Stars](https://img.shields.io/github/stars/mrkheradmand/IDMac?color=gold)](https://github.com/mrkheradmand/IDMac/stargazers)
+
+[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://github.com/mrkheradmand/IDMac/releases/latest) [![macOS Version](https://img.shields.io/badge/macOS-14.0%2B-000000?logo=apple&logoColor=white)](https://www.apple.com/macos/) [![Apple Silicon](https://img.shields.io/badge/arch-Apple%20Silicon%20(M1--M4)-000000?logo=apple&logoColor=white)](https://support.apple.com/HT211814) [![Swift](https://img.shields.io/badge/swift-5.9%2B-F05138?logo=swift&logoColor=white)](https://swift.org/) [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-007AFF?logo=swift&logoColor=white)](https://developer.apple.com/xcode/swiftui/) [![License](https://img.shields.io/github/license/mrkheradmand/IDMac?color=blue)](LICENSE)
+
+</div>
+
 IDMac is a high-speed, modern download manager designed exclusively for macOS. Built from scratch with Apple's native **SwiftUI** and **SwiftData** frameworks, IDMac delivers blazing-fast multi-part download acceleration, resilient crash recovery, and a beautiful interface that feels right at home on your Mac.
 
 No Electron. No web wrappers. No bloat. Just pure, lightning-fast native macOS performance.
